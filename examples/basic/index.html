@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Bid.io Test</title>
+    </head>
+    <body>
+        <p>
+            <input id="message" type="text">
+            <input id="send" type="submit" value="Send">
+        </p>
+
+        <ul id="messages"></ul>
+
+        <script src="//code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/bid.io.js"></script>
+
+        <script>
+
+        bio = bio('http://localhost:3000');
+
+        bio.join('32', function (cobb) {
+
+            console.log(arguments);
+            
+            cobb.watch(7, function () {
+                console.log(arguments);
+            })
+
+            cobb.open(6, { id: 12345, name: 'Jonathan' }, function (err, res) {
+                console.log(arguments);
+                
+                //bid.watch('');
+            });
+
+            cobb.fetch(7, function (err, res) {
+                console.log(arguments);
+                
+                //bid.watch('');
+            });
+        });
+
+
+           
+            /*channels.join('2', function (cobb) {
+                cobb.open(1, { id: 123456, name: 'Jonathan' }, function (err, res) {
+                    cobb.watch(1, 'lock', function () {
+                        console.log(arguments);
+                    })
+                    //bid.watch('');
+                })//.watch('lock', function () {});
+            });*/
+
+
+            
+
+
+
+
+            //.open(1, { id: 2, name: 'Jonathan'}).exec();
+
+
+
+
+            /*cobb.bid(1).watch(function () {
+                console.log(arguments);
+            });
+
+            function jump () {
+                channels.join();
+            }*/
+
+            /*cobb.open(1, function () {
+                console.log(arguments);
+            });*/
+
+            /*bid.in('cobb').bid(123456);
+
+            bid.in('cobb').bid(123456).watch();
+            bid.in('cobb').bid(123456).unwatch();
+
+            bid.in('cobb').bid(123458).watch('fetch lock');
+            bid.in('cobb').bid(123458).unwatch('lock');*/
+
+            //bid.in('cobb').watch('fetch lock');
+            //bid.in('cobb').unwatch('lock');
+
+            //bid.switch('habersham');*/
+
+
+        </script>
+    </body>
+</html>
