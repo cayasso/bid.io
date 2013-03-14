@@ -19,74 +19,45 @@
 
         bio = bio('http://localhost:3000');
 
-        bio.join('32', function (cobb) {
-
-            console.log(arguments);
+        var Cobb = bio.join('32');
             
-            cobb.watch(7, function () {
-                console.log(arguments);
-            })
+        Cobb.watch(7, function () {
+            console.log(arguments);
+        })
 
-            cobb.open(6, { id: 12345, name: 'Jonathan' }, function (err, res) {
-                console.log(arguments);
-                
-                //bid.watch('');
-            });
-
-            cobb.fetch(7, function (err, res) {
-                console.log(arguments);
-                
-                //bid.watch('');
-            });
+        Cobb.open(6, { id: 12345, name: 'Jonathan' }, function (err, res) {
+            console.log(arguments);
         });
 
+        Cobb.fetch(7, function (err, res) {
+            console.log(arguments);
+        });
 
-           
-            /*channels.join('2', function (cobb) {
-                cobb.open(1, { id: 123456, name: 'Jonathan' }, function (err, res) {
-                    cobb.watch(1, 'lock', function () {
-                        console.log(arguments);
-                    })
-                    //bid.watch('');
-                })//.watch('lock', function () {});
-            });*/
+        Cobb.on('connect', function () {
+            console.log('CONNECTED', arguments);
+        })
 
+        Cobb.on('disconnect', function () {
+            console.log('DISCONNECT', arguments);
+        })
 
-            
+        Cobb.on('reconnect', function () {
+            console.log('RECONNECT', arguments);
+        });
 
+        var socket = bio.connect();
 
+        socket.on('connect', function () {
+            console.log('CONNECTED TO REGULAR SOCKET');
 
+            socket.emit('hi');
+            socket.on('hi', function (data) {
 
-            //.open(1, { id: 2, name: 'Jonathan'}).exec();
+                console.log('============ HI =============');
 
-
-
-
-            /*cobb.bid(1).watch(function () {
-                console.log(arguments);
+                console.log(data);
             });
-
-            function jump () {
-                channels.join();
-            }*/
-
-            /*cobb.open(1, function () {
-                console.log(arguments);
-            });*/
-
-            /*bid.in('cobb').bid(123456);
-
-            bid.in('cobb').bid(123456).watch();
-            bid.in('cobb').bid(123456).unwatch();
-
-            bid.in('cobb').bid(123458).watch('fetch lock');
-            bid.in('cobb').bid(123458).unwatch('lock');*/
-
-            //bid.in('cobb').watch('fetch lock');
-            //bid.in('cobb').unwatch('lock');
-
-            //bid.switch('habersham');*/
-
+        })
 
         </script>
     </body>
