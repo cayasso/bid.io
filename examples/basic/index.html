@@ -21,8 +21,8 @@
 
         var Cobb = bio.join('32');
             
-        Cobb.watch(7, function () {
-            console.log(arguments);
+        Cobb.watch(7, function (data, action) {
+            console.log('WATCHING: ', action, data);
         })
 
         Cobb.open(6, { id: 12345, name: 'Jonathan' }, function (err, res) {
@@ -30,7 +30,7 @@
         });
 
         Cobb.fetch(7, function (err, res) {
-            console.log(arguments);
+            console.log('FETCHING', arguments);
         });
 
         Cobb.on('connect', function () {
@@ -54,8 +54,6 @@
             socket.on('hi', function (data) {
 
                 console.log('============ HI =============');
-
-                console.log(data);
             });
         })
 
