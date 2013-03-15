@@ -10,30 +10,62 @@
         </p>
 
         <ul id="messages"></ul>
+        <table id="bidMatrix" border="1">
+            <tr><th colspan="44">&nbsp;</th></tr>
+        </table>  
 
         <script src="//code.jquery.com/jquery-1.9.1.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="/bid.io.js"></script>
         
         <script>
-
+        var counter=0;
         $.getJSON("channels.json", function(data) {
-             channelList=data;
-             console.log(typeof data);
+            channelList=data;
+            //console.log(typeof data);
+            newRows='<tr>';
+                    /*<td colspan=10>1</td>\n\
+                    <td colspan=10></td>\n\
+                    <td colspan=10></td>\n\
+                    <td colspan=10></td>\n\
+                    </tr><tr>';
+            */
+            
+            
+            for (var key in data){
+                if(key!= 0) {
+                if(counter %4 == 0 ) {
+                    newRows+='</tr>';
+                    $('#bidMatrix tr:last').after(newRows);
+                    //console.log(counter);
+                    newRows='<tr>';
+                }
+                //console.log(data[key])
+                newRows+='<td>'+data[key]+'</td>';
+                for(rows=1;rows<=10;rows++){     
+                    //console.log(key);
+                    newRows+='<td id="td'+(rows)+'">'+(rows)+'</td>';
+                }
+                counter++;
+                }//if key not 0
+            }
+            newRows+="</tr>";
+        $('#bidMatrix tr:last').after(newRows);
+             
         });
 
         bio = bio(io, 'http://localhost:3000');
 
         var Cobb = bio.join('32');
             
-        Cobb.watch(6, function (data, action) {
+        /*Cobb.watch(6, function (data, action) {
             console.log('WATCHING: ', action, data);
         })
         
         Cobb.watch(7, function (data, action) {
             console.log('WATCHING: ', action, data);
         })
-
+*/
         
         Cobb.fetch(7, function (err, res) {
             console.log('FETCHING', arguments);
