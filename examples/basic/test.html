@@ -20,6 +20,7 @@
         
         <script>
         var counter=0;
+        var cobbS=new Array();
         $.getJSON("channels.json", function(data) {
             channelList=data;
             //console.log(typeof data);
@@ -34,6 +35,12 @@
             
             for (var key in data){
                 if(key!= 0) {
+                    
+                cobbS[key]=bio.join(key);
+                cobbS[key].watch( function (data, action) {
+                    console.log('WATCHING: ', action, data);
+                })
+
                 if(counter %4 == 0 ) {
                     newRows+='</tr>';
                     $('#bidMatrix tr:last').after(newRows);
@@ -56,16 +63,16 @@
 
         bio = bio(io, 'http://localhost:3000');
 
-        var Cobb = bio.join('32');
+        var Cobb = bio.join(32);
             
-        /*Cobb.watch(6, function (data, action) {
+        Cobb.watch( function (data, action) {
             console.log('WATCHING: ', action, data);
         })
         
-        Cobb.watch(7, function (data, action) {
-            console.log('WATCHING: ', action, data);
-        })
-*/
+//        Cobb.watch(7, function (data, action) {
+  //          console.log('WATCHING: ', action, data);
+    //    })
+
         
         Cobb.fetch(7, function (err, res) {
             console.log('FETCHING', arguments);
