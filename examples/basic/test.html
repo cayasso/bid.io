@@ -2,6 +2,8 @@
 <html>
     <head>
         <title>Bid.io Test</title>
+          <link rel="stylesheet" href="/css/style.css" media="screen" />
+
     </head>
     <body>
         <!--p>
@@ -28,6 +30,9 @@
         $("#something").html("Random user ID:"+userId);
         var counter=0;
         var cobbS=new Array();
+        var timers=new Array(); //to store cancellable timers timers[countyID*100+bidId]
+        var ignoreList = [];// timers[countyId*100+bidId]
+        var waitList = [];
         $.getJSON("channels.json", function(data) {
             channelList=data;
             //console.log(typeof data);
@@ -64,14 +69,26 @@
                                 $('#global').html('no owner is');
                             }
                         } else {
-                           $('#global').html('no owner');
-                           
+                            $('#global').html('no owner');
+                            
+                            if($.inArray((data.county*100+data.id*1),waitList) != -1){
+                                $('#td'+data.county+'_'+data.id).css('background','blue');
+                            }else{
+                                $('#td'+data.county+'_'+data.id).css('background','orange');
+                            }
                         }
                             
 
                         
                     }else if(action == "lock"){
-                        $('#td'+data.county+'_'+data.id).css('background','red');
+                        if(data.owner.id == userId) {
+                            //it is ours 
+                            $('#td'+data.county+'_'+data.id).css('background','green');
+                            ignoreList.push( ((data.county*100)+(data.id*1)) );
+                            console.log(ignoreList);
+                        } else {
+                            $('#td'+data.county+'_'+data.id).css('background','red');                            
+                        }
                     }
                 })
 
@@ -110,18 +127,27 @@
         })
         function doClick(countyId, bidId) {
             
-            setTimeout(function(){
+            //alert(countyId*100+bidId+ ':' + $.inArray(countyId*100+bidId,ignoreList));
+            if($.inArray((countyId*100+bidId),ignoreList) != -1){
+                console.log('already ours');
+                console.log(ignoreList);
+            } else {
+            waitList.push( (countyId*100)+(bidId*1) );
+            console.log(waitList);
+            timers[countyId*100+bidId]=setTimeout(function(){
                 cobbS[countyId].open(bidId, { id: userId, name: userId+' bid#'+bidId }, 
-                function (err, res) {}) 
-            },8000);
+                    function (err, res) {
+                    
+                    }
+                ); 
+            },3000);
             
-            cobbS[countyId].fetch(bidId, { id: userId, name: userId+' bid#'+bidId }, function (err, res) {
-                //alert('shit');
-            /*cobbS[countyId].open(bidId, { id: userId, name: userId+' bid#'+bidId }, function (err, res) {
-                console.log(arguments);            
-            $('#local').html(" >> "+countyId+":"+bidId+" << ");*/
-        });
-            
+                cobbS[countyId].fetch(bidId, { id: userId, name: userId+' bid#'+bidId }, 
+                    function (err, res) {
+                        
+                    }
+                );
+            }
         }
         
         
@@ -164,6 +190,12 @@
          
          * 
          */
+         
+Array.prototype.remove = function(from, to) {
+    var rest = this.slice((to || from) + 1 || this.length);
+    this.length = from < 0 ? this.length + from : from;
+    return this.push.apply(this, rest);
+};
         </script>
     </body>
 </html>
