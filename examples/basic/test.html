@@ -72,9 +72,9 @@
             console.log('WATCHING: ', action, data);
         })
         
-//        Cobb.watch(7, function (data, action) {
-  //          console.log('WATCHING: ', action, data);
-    //    })
+        Cobb.watch(7, function (data, action) {
+            console.log('WATCHING: ', action, data);
+        })
 
         
         Cobb.fetch(7, function (err, res) {
@@ -113,7 +113,7 @@
             });
         })
         function doClick(countyId, bidId) {
-            Cobb.open(countyId, { id: bidId, name: 'some bidder#'+bidId }, function (err, res) {
+            cobbS[countyId].open(bidId, { id: bidId, name: 'some bidder#'+bidId }, function (err, res) {
             console.log(arguments);
             $('#local').html(" >> "+countyId+":"+bidId+" << ");
         });

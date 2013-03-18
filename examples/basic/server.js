@@ -15,7 +15,40 @@ var options = {
 
 // passing in options
 var bio = BidIO(server, options);
+var cobbS=new Array();
+for (var key in counties){
+    console.log(counties[key]);
+    if(key!= 0) {                    
+        cobbS[key]=bio.getChannel(key);
+        // listening to incomming connections on Cobb channel
+        cobbS[key].on('connection', function (socket) {
+                console.log('incoming connection from ', socket.id);
+                socket.emit('Hi from the Cobb channel master');
+        });
 
+        bio.io.on('connection', function (socket) {
+	console.log('CONNECTED');
+	socket.emit('hi');
+            socket.on('hi', function () {
+                console.log('============ HI =============');
+                socket.emit('hi');
+            });
+        });
+// listening to in/out bid stream
+    cobbS[key].on('stream', function (packet) {
+	console.log('In/Out bid stream', packet);
+    });
+
+        for (var i = 1; i <= 10; i++) {
+            cobbS[key].bid.set(i, { description: 'this is bid: ' + i +' in county '+counties[key]+'('+key+')' });
+        }
+     }
+ }
+
+/* 
+ * 
+ * Hardcoded things are left in for whoever who wants to use them
+ *
 // getting the Cobb channel
 var Cobb = bio.getChannel('32');
 
@@ -45,6 +78,9 @@ Cobb.on('stream', function (packet) {
 for (var i = 1; i < 10; i++) {
 	Cobb.bid.set(i, { description: 'this is bid: ' + i });
 }
+
+*/
+//End of hardcoded comment, the rest was like that
 
 /*Cobb.bid.get(2, function (err, bid) {
 	console.log('Getting bid with id 2 ', bid);
