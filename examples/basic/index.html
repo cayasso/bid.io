@@ -17,7 +17,10 @@
 
         <script>
 
-        bio = bio(io, 'http://localhost:3000');
+        //bio = bio(io, 'http://localhost:3000'); 
+        /* only works on localhost, changing it to work from anywhere */
+        bio = bio(io, 'http://'+window.location.hostname+':3000');
+
 
         var Cobb = bio.join('32');
             
