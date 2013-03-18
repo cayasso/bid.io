@@ -4,13 +4,13 @@
         <title>Bid.io Test</title>
     </head>
     <body>
-        <p>
+        <!--p>
             <input id="message" type="text">
             <input id="send" type="submit" value="Send">
-        </p>
+        </p-->
 
         <ul id="messages"></ul>
-        <table id="bidMatrix" border="1">
+        <table id="bidMatrix" border="1" cellpadding="2" cellspacing="0">
             <tr>
                 <th colspan="11" id="local">&nbsp;</th>
                 <th colspan="11" id="global">&nbsp;</th>
@@ -24,6 +24,8 @@
         <script src="/bid.io.js"></script>
         
         <script>
+        var userId=Math.floor((Math.random()*100)+1);
+        $("#something").html("Random user ID:"+userId);
         var counter=0;
         var cobbS=new Array();
         $.getJSON("channels.json", function(data) {
@@ -44,6 +46,33 @@
                 cobbS[key]=bio.join(key);
                 cobbS[key].watch( function (data, action) {
                     console.log('WATCHING: ', action, data);
+                    if(action == "fetch"){
+                        
+                        if(typeof data.owner !== undefined && data.owner !==null){
+                            //data owner is defined
+                            //alert(typeof data.owner);
+                            if(data.owner.id !== undefined) {
+                            //doesn't belong to anyone
+                                if(data.owner.id == userId) {
+                                    //we are the owners
+                                    $('#global').html('we are the owners');
+                                } else {
+                                    $('#global').html('someone else\'s ');
+                                }
+                            }else {
+                                //owner.id is not defined
+                                $('#global').html('no owner is');
+                            }
+                        } else {
+                           $('#global').html('no owner');
+                           
+                        }
+                            
+
+                        
+                    }else if(action == "lock"){
+                        $('#td'+data.county+'_'+data.id).css('background','red');
+                    }
                 })
 
                 if(counter %4 == 0 ) {
@@ -56,7 +85,7 @@
                 newRows+='<td>'+data[key]+'</td>';
                 for(rows=1;rows<=10;rows++){     
                     //console.log(key);
-                    newRows+='<td onclick="doClick('+key+','+rows+');" id="td'+(rows)+'">&nbsp;'+(rows)+'&nbsp;</td>';
+                    newRows+='<td onclick="doClick('+key+','+rows+');" id="td'+key+'_'+(rows)+'">&nbsp;'+(rows)+'&nbsp;</td>';
                 }
                 counter++;
                 }//if key not 0
@@ -68,29 +97,56 @@
 
         bio = bio(io, 'http://'+window.location.hostname+':3000');
 
-        var Cobb = bio.join(32);
+
+        var socket = bio.connect();
+
+        socket.on('connect', function () {
+            //console.log('CONNECTED TO REGULAR SOCKET');
+            //socket.emit('hi');
+            //socket.on('hi', function (data) {
+             //   console.log('============ HI =============');
+            ///});
+            $('#connection').html('<font color=green>connected</font>');
+        })
+        function doClick(countyId, bidId) {
             
+            setTimeout(function(){
+                cobbS[countyId].open(bidId, { id: userId, name: userId+' bid#'+bidId }, 
+                function (err, res) {}) 
+            },8000);
+            
+            cobbS[countyId].fetch(bidId, { id: userId, name: userId+' bid#'+bidId }, function (err, res) {
+                //alert('shit');
+            /*cobbS[countyId].open(bidId, { id: userId, name: userId+' bid#'+bidId }, function (err, res) {
+                console.log(arguments);            
+            $('#local').html(" >> "+countyId+":"+bidId+" << ");*/
+        });
+            
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        /*
+         * 
+        var Cobb = bio.join(32);      
         Cobb.watch( function (data, action) {
             console.log('WATCHING: ', action, data);
         })
-        
         Cobb.watch(7, function (data, action) {
             console.log('WATCHING: ', action, data);
         })
-
-        
         Cobb.fetch(7, function (err, res) {
             console.log('FETCHING', arguments);
             console.log(res);
         });
-
-
         Cobb.open(6, { id: 12345, name: 'Jonathan' }, function (err, res) {
             console.log(arguments);
         });
-        //Cobb.query(6);
-
-
         Cobb.on('connect', function () {
             console.log('CONNECTED', arguments);
             $('#connection').html('<font color=green>connected</font>');
@@ -105,24 +161,9 @@
             console.log('RECONNECT', arguments);
             $('#connection').html('<font color=red>re-connected</font>');
         });
-
-        var socket = bio.connect();
-
-        socket.on('connect', function () {
-            //console.log('CONNECTED TO REGULAR SOCKET');
-            //socket.emit('hi');
-            //socket.on('hi', function (data) {
-             //   console.log('============ HI =============');
-            ///});
-            $('#connection').html('<font color=green>connected</font>');
-        })
-        function doClick(countyId, bidId) {
-            cobbS[countyId].open(bidId, { id: bidId, name: 'some bidder#'+bidId }, function (err, res) {
-            console.log(arguments);
-            $('#local').html(" >> "+countyId+":"+bidId+" << ");
-        });
-            
-        }
+         
+         * 
+         */
         </script>
     </body>
 </html>
