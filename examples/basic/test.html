@@ -12,8 +12,10 @@
         <ul id="messages"></ul>
         <table id="bidMatrix" border="1">
             <tr>
-                <th colspan="22" id="local">&nbsp;</th>
-                <th colspan="22" id="global">&nbsp;</th>
+                <th colspan="11" id="local">&nbsp;</th>
+                <th colspan="11" id="global">&nbsp;</th>
+                <th colspan="11" id="something">&nbsp;</th>
+                <th colspan="11" id="connection">&nbsp;</th>
             </tr>
         </table>  
 
@@ -54,7 +56,7 @@
                 newRows+='<td>'+data[key]+'</td>';
                 for(rows=1;rows<=10;rows++){     
                     //console.log(key);
-                    newRows+='<td onclick="doClick('+key+','+rows+');" id="td'+(rows)+'">'+(rows)+'</td>';
+                    newRows+='<td onclick="doClick('+key+','+rows+');" id="td'+(rows)+'">&nbsp;'+(rows)+'&nbsp;</td>';
                 }
                 counter++;
                 }//if key not 0
@@ -91,26 +93,28 @@
 
         Cobb.on('connect', function () {
             console.log('CONNECTED', arguments);
+            $('#connection').html('<font color=green>connected</font>');
         })
 
         Cobb.on('disconnect', function () {
             console.log('DISCONNECT', arguments);
+            $('#connection').html('<font color=red>dis-connected</font>');
         })
 
         Cobb.on('reconnect', function () {
             console.log('RECONNECT', arguments);
+            $('#connection').html('<font color=red>re-connected</font>');
         });
 
         var socket = bio.connect();
 
         socket.on('connect', function () {
-            console.log('CONNECTED TO REGULAR SOCKET');
-
-            socket.emit('hi');
-            socket.on('hi', function (data) {
-
-                console.log('============ HI =============');
-            });
+            //console.log('CONNECTED TO REGULAR SOCKET');
+            //socket.emit('hi');
+            //socket.on('hi', function (data) {
+             //   console.log('============ HI =============');
+            ///});
+            $('#connection').html('<font color=green>connected</font>');
         })
         function doClick(countyId, bidId) {
             cobbS[countyId].open(bidId, { id: bidId, name: 'some bidder#'+bidId }, function (err, res) {
