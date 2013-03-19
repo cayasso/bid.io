@@ -5,11 +5,8 @@
         <link rel="stylesheet" href="/css/style.css" media="screen" />
 
     </head>
-    <body onkeypress="keyPress()">
-        
-            <input id="charz" type="text">        
-        
-        <table>
+    <body onkeypress="keyPress(event)">
+        <!--<table>
                 <tr>
                     <td></td><td><a onclick="changeDir('up')">&nbsp;^&nbsp;</a></td><td></td>
                 </tr>
@@ -20,10 +17,10 @@
                     <td></td><td><a onclick="changeDir('down')">&nbsp;v&nbsp;</a></td><td></td>
                 </tr>
             </table>
-        
+        -->
         <table id="bidMatrix" border="1" cellpadding="2" cellspacing="0">
             <tr>
-                <th colspan="11" id="local">
+                <th colspan="11" id="local">nav wasd, p=pause
                 </th>
 
                 <th colspan="11" id="global">&nbsp;</th>
@@ -51,6 +48,8 @@
                         var timers = new Array(); //to store cancellable timers timers[countyID*100+bidId]
                         var ignoreList = [];// timers[countyId*100+bidId]
                         var waitList = [];
+                        var gameRuns = false;
+                        var playerReady=false;
                         $.getJSON("channels.json", function(data) {
                             channelList = data;
                             //console.log(typeof data);
@@ -132,7 +131,7 @@
                                         bidObj.county = key;
                                         bidObj.bidId = cols;
                                         //newRows += '<td onclick="doClick(' + key + ',' + cols + ');" id="td' + key + '_' + (cols) + '"><font size=1%>' + rows + ":" + (rcols) + '&nbsp;</font></td>';
-                                        newRows += '<td onclick="doClick(' + key + ',' + cols + ');" id="td' + key + '_' + (cols) + '">+</td>';
+                                        newRows += '<td width="10px" height="10px" onclick="doClick(' + key + ',' + cols + ');" id="td' + key + '_' + (cols) + '"></td>';
                                         matrix[rows][rcols] = bidObj;
 
                                     }
@@ -206,10 +205,34 @@
                                 );
                             }
                         }
+                        var stepDirection="right";
                         
-                        function keyPress() {
-                        
+                        function keyPress(event) {
+                            console.log(event);
+                            var char = getChar(event || window.event)
+                            console.log(char);
+                            if(char === "a") {
+                                //changeDir("left");
+                                stepDirection="left";
+                            }else
+                            if(char === "w") {
+                                //changeDir("up");
+                                stepDirection="up";
+                            }else
+                            if(char === "s") {
+                                //changeDir("down");
+                                stepDirection="down";
+                            }else
+                            if(char === "d") {
+                                //changeDir("right");
+                                stepDirection="right";
+                            }else
+                            if(char === "p"){
+                               togglePause();
+                            }
+                            
                         }
+                        
                         function changeDir(direction) {
                             console.log(direction);
                             if (direction === "right") {
@@ -239,26 +262,59 @@
                                     youDie("lol");
                                 }
                             }
+                            
+                            makeMove();
+                        }
+                        
+                        function makeMove() {
                             console.log(posR, posC);
                              currObj = matrix[posR][posC];
                              doClick(currObj.county, currObj.bidId);
-
                         }
+                        
                         function initGame() {
                             
                             currObj = {};
                             currObj = matrix[posR][posC];
                             doClick(currObj.county, currObj.bidId);
                             direction = 'right';
+                            
                         }
                         
                         function restart() {
                             socket.emit('restart');
                             
                         }
-
-
-
+                        // event.type must wwbe keypress
+                        function getChar(event) {
+                          if (event.which == null) {
+                            return String.fromCharCode(event.keyCode) // IE
+                          } else if (event.which!=0 && event.charCode!=0) {
+                            return String.fromCharCode(event.which)   // the rest
+                          } else {
+                            return null // special key
+                          }
+                        }
+                        
+                        function togglePause() {
+                                if(gameRuns) {
+                                    gameRuns=false;
+                                }else {
+                                    gameRuns=true;
+                                }
+                        }
+                        var steps=0;
+                        stepInterval = setInterval( function() {
+                            if(gameRuns){
+                            steps++;
+                            changeDir(stepDirection);
+                            //makeMove();
+                            } else {
+                                
+                            }
+                            console.log("steps:",steps, "stepDirection",stepDirection);
+                            
+                        },400);
 
                         /*
                          * 
