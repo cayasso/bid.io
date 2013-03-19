@@ -34,6 +34,8 @@ for (var key in counties){
                 socket.emit('hi');
             });            
             socket.on('restart', function () {
+                socket.emit('restart');
+                //bio.sockets.emit('restart');WTF :(
                 process.exit();
             });
         });

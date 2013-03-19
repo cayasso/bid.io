@@ -5,13 +5,10 @@
         <link rel="stylesheet" href="/css/style.css" media="screen" />
 
     </head>
-    <body>
-        <!--p>
-            <input id="message" type="text">
-            <input id="send" type="submit" value="Send">
-        </p-->
-
-        <ul id="messages"></ul>
+    <body onkeypress="keyPress()">
+        
+            <input id="charz" type="text">        
+        
         <table>
                 <tr>
                     <td></td><td><a onclick="changeDir('up')">&nbsp;^&nbsp;</a></td><td></td>
@@ -179,6 +176,10 @@
                             //socket.on('hi', function (data) {
                             //   console.log('============ HI =============');
                             ///});
+                            
+                            socket.on('restart',function(data){
+                                console.log('restart req received');
+                            });
                             $('#connection').html('<font color=green>connected</font>');
                         })
                         function doClick(countyId, bidId) {
@@ -204,6 +205,10 @@
                                 }
                                 );
                             }
+                        }
+                        
+                        function keyPress() {
+                        
                         }
                         function changeDir(direction) {
                             console.log(direction);
@@ -245,9 +250,6 @@
                             currObj = matrix[posR][posC];
                             doClick(currObj.county, currObj.bidId);
                             direction = 'right';
-                            
-                            
-
                         }
                         
                         function restart() {
