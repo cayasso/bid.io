@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Bid.io Test</title>
+        <link rel="stylesheet" href="/css/style.css" media="screen" />
+
+    </head>
+    <body>
+        <!--p>
+            <input id="message" type="text">
+            <input id="send" type="submit" value="Send">
+        </p-->
+
+        <ul id="messages"></ul>
+        <table>
+                <tr>
+                    <td></td><td><a onclick="changeDir('up')">&nbsp;^&nbsp;</a></td><td></td>
+                </tr>
+                <tr>
+                    <td><a onclick="changeDir('left')">&nbsp;&lt;&nbsp;</a></td><td></td><td><a onclick="changeDir('right');">&nbsp;&gt;&nbsp;</a></td>
+                </tr>
+                <tr>
+                    <td></td><td><a onclick="changeDir('down')">&nbsp;v&nbsp;</a></td><td></td>
+                </tr>
+            </table>
+        
+        <table id="bidMatrix" border="1" cellpadding="2" cellspacing="0">
+            <tr>
+                <th colspan="11" id="local">
+                </th>
+
+                <th colspan="11" id="global">&nbsp;</th>
+                <th colspan="11" id="something">&nbsp;</th>
+                <th colspan="11" id="connection">&nbsp;</th>
+                <th colspan="11" id="control"><a onclick="restart()">restart</a></th>
+            </tr>
+        </table>  
+
+        <script src="//code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/bid.io.js"></script>
+
+        <script>
+                        var userId = Math.floor((Math.random() * 100) + 1);
+                        $("#something").html("Random user ID:" + userId);
+                        matrix = new Array();
+                        var posR = 1;
+                        var posC = 1;
+                        var counter = 0;
+                        var rows = 0;
+                        var cols = 0;
+                        var rcols = 0; //real columns (not just counter withing counties)
+                        var cobbS = new Array();
+                        var timers = new Array(); //to store cancellable timers timers[countyID*100+bidId]
+                        var ignoreList = [];// timers[countyId*100+bidId]
+                        var waitList = [];
+                        $.getJSON("channels.json", function(data) {
+                            channelList = data;
+                            //console.log(typeof data);
+                            newRows = '<tr>';
+                            /*<td colspan=10>1</td>\n\
+                             <td colspan=10></td>\n\
+                             <td colspan=10></td>\n\
+                             <td colspan=10></td>\n\
+                             </tr><tr>';
+                             */
+
+
+                            for (var key in data) {
+                                if (key != 0) {
+
+
+
+                                    cobbS[key] = bio.join(key);
+                                    cobbS[key].watch(function(data, action) {
+                                        console.log('WATCHING: ', action, data);
+                                        if (action == "fetch") {
+
+                                            if (typeof data.owner !== undefined && data.owner !== null) {
+                                                //data owner is defined
+                                                //alert(typeof data.owner);
+                                                if (data.owner.id !== undefined) {
+                                                    //doesn't belong to anyone
+                                                    if (data.owner.id == userId) {
+                                                        //we are the owners
+                                                        $('#global').html('we are the owners');
+                                                    } else {
+                                                        $('#global').html('someone else\'s ');
+                                                    }
+                                                } else {
+                                                    //owner.id is not defined
+                                                    $('#global').html('no owner is');
+                                                }
+                                            } else {
+                                                $('#global').html('no owner');
+
+                                                if ($.inArray((data.county * 100 + data.id * 1), waitList) != -1) {
+                                                    $('#td' + data.county + '_' + data.id).css('background', 'blue');
+                                                } else {
+                                                    $('#td' + data.county + '_' + data.id).css('background', 'orange');
+                                                }
+                                            }
+
+
+
+                                        } else if (action == "lock") {
+                                            if (data.owner.id == userId) {
+                                                //it is ours 
+                                                $('#td' + data.county + '_' + data.id).css('background', 'green');
+                                                ignoreList.push(((data.county * 100) + (data.id * 1)));
+                                                console.log(ignoreList);
+                                            } else {
+                                                $('#td' + data.county + '_' + data.id).css('background', 'red');
+                                            }
+                                        }
+                                    })
+
+                                    if (counter % 6 == 0) {
+                                        newRows += '</tr>';
+                                        $('#bidMatrix tr:last').after(newRows);
+                                        //console.log(counter);
+                                        newRows = '<tr>';
+
+                                        rows++;
+                                        matrix[rows] = new Array();
+                                        rcols = 0;
+                                    }
+                                    //console.log(data[key])
+                                    //newRows+='<td>'+data[key]+'</td>';
+                                    for (cols = 1; cols <= 10; cols++) {
+
+                                        rcols++;
+                                        //console.log(key);
+                                        bidObj = {};
+                                        bidObj.county = key;
+                                        bidObj.bidId = cols;
+                                        //newRows += '<td onclick="doClick(' + key + ',' + cols + ');" id="td' + key + '_' + (cols) + '"><font size=1%>' + rows + ":" + (rcols) + '&nbsp;</font></td>';
+                                        newRows += '<td onclick="doClick(' + key + ',' + cols + ');" id="td' + key + '_' + (cols) + '">+</td>';
+                                        matrix[rows][rcols] = bidObj;
+
+                                    }
+                                    counter++;
+                                }//if key not 0
+                            }// freaking long foreach on the bids objec (counties in reality) ;)
+                            newRows += "</tr>";
+                            $('#bidMatrix tr:last').after(newRows);
+                            console.log("rows, rcols", rows, rcols);
+
+                            for (r = 1; r <= rows; r++) {
+                                for (c = 1; c <= rcols; c++) {
+                                    //console.log(matrix[r][c]);
+
+                                }
+                            }
+                            //matrix[rows][rcols]=bidObj;
+
+                            /*  for (var key in data){
+                             if(key!= 0) {
+                             for(rows=1;rows<=10;rows++){
+                             cobbS[key].complete(rows, { id: 0, name: 0+' bid#'+rows }, 
+                             function (err, res) {
+                             });
+                             }
+                             }
+                             }
+                             */
+                            initGame();
+                        });//json init --- async !!!!
+
+
+                        bio = bio(io, 'http://' + window.location.hostname + ':3000');
+
+
+                        var socket = bio.connect();
+
+                        socket.on('connect', function() {
+                            //console.log('CONNECTED TO REGULAR SOCKET');
+                            //socket.emit('hi');
+                            //socket.on('hi', function (data) {
+                            //   console.log('============ HI =============');
+                            ///});
+                            $('#connection').html('<font color=green>connected</font>');
+                        })
+                        function doClick(countyId, bidId) {
+
+                            //alert(countyId*100+bidId+ ':' + $.inArray(countyId*100+bidId,ignoreList));
+                            if ($.inArray((countyId * 100 + bidId), ignoreList) != -1) {
+                                console.log('already ours');
+                                console.log(ignoreList);
+                            } else {
+                                waitList.push((countyId * 100) + (bidId * 1));
+                                console.log(waitList);
+                                timers[countyId * 100 + bidId] = setTimeout(function() {
+                                    cobbS[countyId].open(bidId, {id: userId, name: userId + ' bid#' + bidId},
+                                    function(err, res) {
+
+                                    }
+                                    );
+                                }, 3000);
+
+                                cobbS[countyId].fetch(bidId, {id: userId, name: userId + ' bid#' + bidId},
+                                function(err, res) {
+
+                                }
+                                );
+                            }
+                        }
+                        function changeDir(direction) {
+                            console.log(direction);
+                            if (direction === "right") {
+                                if (posC < 60) {
+                                    posC++;
+                                } else {
+                                    youDie("lol");
+                                }
+                            } else if (direction === "left") {
+                                if (posC > 1) {
+                                    posC--;
+                                }else{
+                                    youDie("lol");
+                                }
+
+                            } else if (direction === "down") {
+                                if (posR < 26) {
+                                    posR++;
+                                } else {
+                                    youDie("lol");
+                                }
+                                
+                            } else if (direction === "up") {
+                                if (posR > 1) {
+                                    posR--;
+                                } else {
+                                    youDie("lol");
+                                }
+                            }
+                            console.log(posR, posC);
+                             currObj = matrix[posR][posC];
+                             doClick(currObj.county, currObj.bidId);
+
+                        }
+                        function initGame() {
+                            
+                            currObj = {};
+                            currObj = matrix[posR][posC];
+                            doClick(currObj.county, currObj.bidId);
+                            direction = 'right';
+                            
+                            
+
+                        }
+                        
+                        function restart() {
+                            socket.emit('restart');
+                            
+                        }
+
+
+
+
+                        /*
+                         * 
+                         var Cobb = bio.join(32);      
+                         Cobb.watch( function (data, action) {
+                         console.log('WATCHING: ', action, data);
+                         })
+                         Cobb.watch(7, function (data, action) {
+                         console.log('WATCHING: ', action, data);
+                         })
+                         Cobb.fetch(7, function (err, res) {
+                         console.log('FETCHING', arguments);
+                         console.log(res);
+                         });
+                         Cobb.open(6, { id: 12345, name: 'Jonathan' }, function (err, res) {
+                         console.log(arguments);
+                         });
+                         Cobb.on('connect', function () {
+                         console.log('CONNECTED', arguments);
+                         $('#connection').html('<font color=green>connected</font>');
+                         })
+                         
+                         Cobb.on('disconnect', function () {
+                         console.log('DISCONNECT', arguments);
+                         $('#connection').html('<font color=red>dis-connected</font>');
+                         })
+                         
+                         Cobb.on('reconnect', function () {
+                         console.log('RECONNECT', arguments);
+                         $('#connection').html('<font color=red>re-connected</font>');
+                         });
+                         
+                         * 
+                         */
+
+                        Array.prototype.remove = function(from, to) {
+                            var rest = this.slice((to || from) + 1 || this.length);
+                            this.length = from < 0 ? this.length + from : from;
+                            return this.push.apply(this, rest);
+                        };
+        </script>
+    </body>
+</html>

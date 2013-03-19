@@ -32,6 +32,9 @@ for (var key in counties){
             socket.on('hi', function () {
                 console.log('============ HI =============');
                 socket.emit('hi');
+            });            
+            socket.on('restart', function () {
+                process.exit();
             });
         });
 // listening to in/out bid stream
