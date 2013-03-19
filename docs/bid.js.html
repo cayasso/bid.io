@@ -79,7 +79,7 @@
               </li>
               <li><a href="#set"><i class="alert alert-info"></i>set</a>
               </li>
-              <li><a href="#get"><i class="alert alert-info"></i>get</a>
+              <li><a href="#find"><i class="alert alert-info"></i>find</a>
               </li>
               <li><a href="#lock"><i class="alert alert-info"></i>lock</a>
               </li>
@@ -88,6 +88,8 @@
               <li><a href="#unlock"><i class="alert alert-info"></i>unlock</a>
               </li>
               <li><a href="#forceUnlock"><i class="alert alert-info"></i>forceUnlock</a>
+              </li>
+              <li><a href="#pending"><i class="alert alert-info"></i>pending</a>
               </li>
               <li><a href="#complete"><i class="alert alert-info"></i>complete</a>
               </li>
@@ -151,8 +153,8 @@ var debug = require('debug')('bid.io:bid');</code></pre>
           </table>
           <div class="description"><p>Bid constructor.</p> 
             <pre><code class="language-javascript">function Bid (store) {
-	this.store = store;
-	this.on('error', defaultError);
+  this.store = store;
+  this.on('error', defaultError);
 }</code></pre>
           </div>
           <section id="__proto__">
@@ -200,25 +202,25 @@ var debug = require('debug')('bid.io:bid');</code></pre>
           </table>
           <div class="description"><p>Set a <code>bid</code>.</p> 
             <pre><code class="language-javascript">Bid.prototype.set = function (id, data, fn) {
-	if (!id) {
-		this.error('Missing bid id', fn);
-		return this;
-	}
-	data = data || {};
-	data.id = id;
-	data.owners = data.owners || {};
-	data.owner = data.owner || null;
-	data.locked = false;
-	data.completed = false;
-	this.store.set(id, data, fn);
-	return this;
+  if (!id) {
+    this.error('Missing bid id', fn);
+    return this;
+  }
+  data = data || {};
+  data.id = id;
+  data.owners = data.owners || {};
+  data.owner = data.owner || null;
+  data.locked = 0;
+  data.state = 0;
+  this.store.set(id, data, fn);
+  return this;
 };</code></pre>
           </div>
-          <section id="get">
-            <h1>get</h1>
+          <section>
+            <h1></h1>
             <h5 class="subheader"></h5>
             <p>
-              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.get()</span> -><span>Bid</span>
+              <div class="label label-success radius ctx-type"></div> -><span>Bid</span>
             </p>
           </section>
           <table class="table table-bordered table-striped">
@@ -243,23 +245,50 @@ var debug = require('debug')('bid.io:bid');</code></pre>
             </tbody>
           </table>
           <div class="description"><p>Fetch a <code>bid</code> from store.</p> 
-            <pre><code class="language-javascript">Bid.prototype.get = function (id, fn) {
-
-
-
-	this.store.get(id, function (err, bid) {
-
-		if (err) {
-			console.log('THERE WAS AN ERROR');
-		}
-		if (this.handleError(err, bid, fn)) return;
-		
-		//console.log('GETTING A BID', arguments);
-
-		fn &amp;&amp; fn(null, bid);
-		this.emit('get', bid);
-	}.bind(this));
-	return this;
+            <pre><code class="language-javascript">Bid.prototype.fetch =
+Bid.prototype.get = function (id, fn) {
+  this.store.get(id, function (err, bid) {
+    if (this.handleError(err, bid, fn)) return;
+    if (fn) fn(null, bid);
+    this.emit('get', bid);
+  }.bind(this));
+  return this;
+};</code></pre>
+          </div>
+          <section id="find">
+            <h1>find</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.find()</span> -><span>Bid</span>
+            </p>
+          </section>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width:20%">Option name</th>
+                <th style="width:20%">Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>query</td>
+                <td>Object</td>
+                <td>the query object</td>
+              </tr>
+              <tr>
+                <td>fn</td>
+                <td>Function</td>
+                <td>the callback</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="description"><p>Find a <code>bid</code> from store.</p> 
+            <pre><code class="language-javascript">Bid.prototype.find = function (query, fn) {
+  this.store.find(query, function (err, res) {
+    if (fn) fn(null, res);
+  }.bind(this));
+  return this;
 };</code></pre>
           </div>
           <section id="lock">
@@ -296,40 +325,26 @@ var debug = require('debug')('bid.io:bid');</code></pre>
             </tbody>
           </table>
           <div class="description"><p>Lock a <code>bid</code>.</p> 
-            <pre><code class="language-javascript">Bid.prototype.lock = function (id, owner, force, fn) {
-	owner = owner || {};
-	if ('function' === typeof force) {
-		fn = force;
-		force = null;
-	}
-	var self = this;
-
-
-	self.get(id, function (err, bid) {
-		if (bid &amp;&amp; force) bid.locked = false;
-
-		console.log('THE OWNER NOW', bid);
-
-		if (self.handleError(err, bid, owner.id, fn)) return;
-		bid.locked = true;
-		bid.owner = owner;
-		bid.owners[owner.id] = owner;
-
-
-		return self.set(id, bid, function (err, bid) {
-			if (!err &amp;&amp; !bid) {
-				err = { message: 'Error saving bid' };
-			}
-			if (err) {
-				if (fn) fn(err);
-				self.emit('error', err);
-				return;
-			}
-			if (fn) fn(null, bid);
-			self.emit('lock', err);
-		});
-	});
-	return this;
+            <pre><code class="language-javascript">Bid.prototype.lock = function (id, owner, force, fn) { 
+  owner = owner || {};
+  if ('function' === typeof force) {
+    fn = force;
+    force = null;
+  }
+  var self = this;
+  self.get(id, function (err, bid) {
+    if (bid &amp;&amp; force) bid.locked = 0;
+    if (self.handleError(err, bid, owner.id, fn)) return;
+    bid.locked = 1;
+    bid.owner = owner;
+    bid.owners[owner.id] = owner;
+    return self.set(id, bid, function (err, bid) {
+      if (self.handleSetError(err, bid, fn)) return;
+      if (fn) fn(null, bid);
+      self.emit('lock', bid);
+    });
+  });
+  return this;
 };</code></pre>
           </div>
           <section id="forceLock">
@@ -367,8 +382,8 @@ var debug = require('debug')('bid.io:bid');</code></pre>
           </table>
           <div class="description"><p>Force lock a <code>bid</code>.</p> 
             <pre><code class="language-javascript">Bid.prototype.forceLock = function (id, owner, fn) {
-	this.lock(id, owner, true, fn);
-	return this;
+  this.lock(id, owner, true, fn);
+  return this;
 };</code></pre>
           </div>
           <section id="unlock">
@@ -401,39 +416,32 @@ var debug = require('debug')('bid.io:bid');</code></pre>
           </table>
           <div class="description"><p>Unlock a <code>bid</code>.</p> 
             <pre><code class="language-javascript">Bid.prototype.unlock = function (id, owner, force, fn) {
-	owner = owner || {};
-	var self = this;
-	if ('function' === typeof force) {
-		fn = force;
-		force = null;
-	}
-	self.get(id, function (err, bid) {
-		if (self.handleError(err, bid, fn)) return;
-		if (bid.locked) {
-			if (owner.id === this.owner.id || force) {
-				bid.owner = null;
-				bid.locked = false;
-				return self.set(id, bid, function (err, bid) {
-					if (!err &amp;&amp; !bid) {
-						err = { message: 'Error saving bid' };
-					}
-					if (err) {
-						if (fn) fn(err);
-						self.emit('error', err);
-						return;
-					}
-					if (fn) fn(null, bid);
-					self.emit('unlock', err);
-				});
-			}
-			err = { message: 'Locked by another user', owner: bid.owner };
-		} else {
-			err = { message: 'Bid is not locked' };
-		}
-		if (fn) fn(err);
-		self.emit('error', err);
-	});
-	return this;
+  owner = owner || {};
+  var self = this;
+  if ('function' === typeof force) {
+    fn = force;
+    force = null;
+  }
+  self.get(id, function (err, bid) {
+    if (self.handleError(err, bid, fn)) return;
+    if (bid.locked) {
+      if (owner.id === this.owner.id || force) {
+        bid.owner = null;
+        bid.locked = 0;
+        return self.set(id, bid, function (err, bid) {
+          if (self.handleSetError(err, bid, fn)) return;
+          if (fn) fn(null, bid);
+          self.emit('unlock', bid);
+        });
+      }
+      err = { message: 'Locked by another user', owner: bid.owner };
+    } else {
+      err = { message: 'Bid is not locked' };
+    }
+    if (fn) fn(err);
+    self.emit('error', err);
+  });
+  return this;
 };</code></pre>
           </div>
           <section id="forceUnlock">
@@ -471,8 +479,59 @@ var debug = require('debug')('bid.io:bid');</code></pre>
           </table>
           <div class="description"><p>Force unlock a <code>bid</code>.</p> 
             <pre><code class="language-javascript">Bid.prototype.forceUnlock = function (id, oid, fn) {
-	this.unlock(id, oid, true, fn);
-	return this;
+  this.unlock(id, oid, true, fn);
+  return this;
+};</code></pre>
+          </div>
+          <section id="pending">
+            <h1>pending</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.pending()</span> -><span>Bid</span>
+            </p>
+          </section>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width:20%">Option name</th>
+                <th style="width:20%">Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>id</td>
+                <td>String,Number</td>
+                <td>the bid id</td>
+              </tr>
+              <tr>
+                <td>owner</td>
+                <td>Object</td>
+                <td>the owner object</td>
+              </tr>
+              <tr>
+                <td>fn</td>
+                <td>Function</td>
+                <td>callback function</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="description"><p>Ser a <code>bid</code> to pending mode.</p> 
+            <pre><code class="language-javascript">Bid.prototype.pending = function (id, owner, fn) {
+  owner = owner || {};
+  var self = this;
+  self.get(id, function (err, bid) {
+    if (self.handleError(err, bid, owner.id, fn)) return;
+    bid.state = 1;
+    bid.owner = owner;
+    bid.owners[owner.id] = owner;
+    return self.set(id, bid, function (err, bid) {
+      if (self.handleSetError(err, bid, fn)) return;
+      if (fn) fn(null, bid);
+      self.emit('pending', bid);
+    });
+  });
+  return this;
 };</code></pre>
           </div>
           <section id="complete">
@@ -510,28 +569,21 @@ var debug = require('debug')('bid.io:bid');</code></pre>
           </table>
           <div class="description"><p>Complete a <code>bid</code>.</p> 
             <pre><code class="language-javascript">Bid.prototype.complete = function (id, owner, fn) {
-	owner = owner || {};
-	var self = this;
-	self.get(id, function (err, bid) {
-		if (self.handleError(err, bid, owner.id, fn)) return;
-		bid.locked = true;
-		bid.completed = true;
-		bid.owner = owner;
-		bid.owners[owner.id] = owner;
-		return self.set(id, bid, function (err, bid) {
-			if (!err &amp;&amp; !bid) {
-				err = { message: 'Error saving bid' };
-			}
-			if (err) {
-				if (fn) fn(err);
-				self.emit('error', err);
-				return;
-			}
-			if (fn) fn(null, bid);
-			self.emit('locked', err);
-		});
-	});
-	return this;
+  owner = owner || {};
+  var self = this;
+  self.get(id, function (err, bid) {
+    if (self.handleError(err, bid, owner.id, fn)) return;
+    bid.locked = 1;
+    bid.state = 2;
+    bid.owner = owner;
+    bid.owners[owner.id] = owner;
+    return self.set(id, bid, function (err, bid) {
+      if (self.handleSetError(err, bid, fn)) return;
+      if (fn) fn(null, bid);
+      self.emit('complete', bid);
+    });
+  });
+  return this;
 };</code></pre>
           </div>
         </div>

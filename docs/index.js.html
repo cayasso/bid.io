@@ -85,6 +85,8 @@
               </li>
               <li><a href="#attach"><i class="alert alert-info"></i>attach</a>
               </li>
+              <li><a href="#run"><i class="alert alert-info"></i>run</a>
+              </li>
               <li><a href="#setChannel"><i class="alert alert-info"></i>setChannel</a>
               </li>
               <li><a href="#getChannel"><i class="alert alert-info"></i>getChannel</a>
@@ -113,8 +115,7 @@ var Bid = require('./bid');
 var stores = require('./stores');
 var MemoryStore = stores.Memory;
 var debug = require('debug')('bid.io:server');
-var Channel = require('./channel');
-var channels = require('../config/channels');</code></pre>
+var Channel = require('./channel');</code></pre>
           </div>
           <section id="exports">
             <h1>exports</h1>
@@ -186,9 +187,10 @@ Chnl2.bid.get(123, function (err, bid) {
             <pre><code class="language-javascript">function Server(srv, opts) {
   if (!(this instanceof Server)) return new Server(srv, opts);
   opts = opts || {};
+  this.autorun = undefined === opts.autorun ? true : opts.autorun;
   this.ns(opts.ns || 'stream');
   this.store(opts.store || MemoryStore);
-  this.channels(opts.channels || channels);
+  this.channels(opts.channels || {});
   this.chnls = {};
   if (srv) this.attach(srv, opts);
 }</code></pre>
@@ -393,6 +395,35 @@ bio.attach(server);
   return this;
 };</code></pre>
           </div>
+          <section id="run">
+            <h1>run</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>Server.prototype.run()</span> -><span>Server</span>
+            </p>
+          </section>
+          <div class="description"><p>Set and listen to each channel connection.</p> 
+            <pre><code class="language-javascript">Server.prototype.run = function (fn) {
+  var keys = Object.keys(this._channels);
+  var len = keys.length;
+  if (this._channels) {
+    for (var name in this._channels) {
+      this.setChannel(name);
+      len--;
+      if (len === 0) {
+        debug('finish setting channels');
+        process.nextTick(function () {
+          this.emit('channels', this);
+          if (fn) fn(this);
+        }.bind(this));
+      }
+    }
+  } else {
+    debug('no channels loaded');
+  }
+  return this;
+};</code></pre>
+          </div>
           <section id="setChannel">
             <h1>setChannel</h1>
             <h5 class="subheader"></h5>
@@ -430,7 +461,7 @@ myChannel.on('ready', function (conn) {
   conn.emit('ready');
 });
 </code></pre> 
-            <pre><code class="language-javascript">Server.prototype.setChannel = function (name, fn) {
+            <pre><code class="language-javascript">Server.prototype.setChannel = function (name) {
   if (!this.io) {
     debug('socket.io object is not defined');
     return this;
@@ -482,7 +513,10 @@ Cobb.bid.get(123, function (err, bid) {
 </code></pre> 
             <pre><code class="language-javascript">Server.prototype.getChannel = function (name) {
   var chnl = this.chnls[name];
-  if (!chnl) return debug(&quot;Channel '%s' doesn't exist.&quot;, name);
+  if (!chnl) {
+    debug(&quot;Channel '%s' doesn't exist.&quot;, name);
+    return null;
+  }
   return chnl;
 };</code></pre>
           </div>

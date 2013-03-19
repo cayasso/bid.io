@@ -45,10 +45,11 @@ for (var key in counties){
         for (var i = 1; i <= 10; i++) {
             cobbS[key].bid.set(i, { description: 'this is bid: ' + i +' in county '+counties[key]+'('+key+')', 
                     county:key
-            });
+            });           
         }
      }
  }
+
 
 /* 
  * 

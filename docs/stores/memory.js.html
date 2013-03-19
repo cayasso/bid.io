@@ -83,6 +83,8 @@
               </li>
               <li><a href="#del"><i class="alert alert-info"></i>del</a>
               </li>
+              <li><a href="#find"><i class="alert alert-info"></i>find</a>
+              </li>
               <li><a href="#clear"><i class="alert alert-info"></i>clear</a>
               </li>
             </ul>
@@ -178,7 +180,7 @@ var debug = require('debug')('bids.io:store-memory');</code></pre>
             <pre><code class="language-javascript">Memory.prototype.set = function (id, data, fn) {
   this.async(function () {
     this.data[id] = data;
-    fn &amp;&amp; fn(null, this.data[id]);
+    if (fn) fn(null, this.data[id]);
   });
   return this;
 };</code></pre>
@@ -221,7 +223,7 @@ var debug = require('debug')('bids.io:store-memory');</code></pre>
 </code></pre> 
             <pre><code class="language-javascript">Memory.prototype.get = function (id, fn) {
   this.async(function () {
-    fn &amp;&amp; fn(null, this.data[id]);
+    if (fn) fn(null, this.data[id]);
   });
   return this;
 };</code></pre>
@@ -265,7 +267,94 @@ var debug = require('debug')('bids.io:store-memory');</code></pre>
             <pre><code class="language-javascript">Memory.prototype.del = function (id, fn) {
   this.async(function () {
     delete this.data[id];
-    fn &amp;&amp; fn(null);
+    if (fn) fn(null);
+  });
+  return this;
+};</code></pre>
+          </div>
+          <section id="find">
+            <h1>find</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>Memory.prototype.find()</span> -><span>Memory</span>
+            </p>
+          </section>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width:20%">Option name</th>
+                <th style="width:20%">Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>query</td>
+                <td>String,Number,Object</td>
+                <td>options to use for finding</td>
+              </tr>
+              <tr>
+                <td>fn</td>
+                <td>Function</td>
+                <td>callback function that returns an array of bids</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="description"><p>Find a <code>bid</code> or a group of bids.</p>
+
+<h4>Example:</h4>
+
+<pre><code>store.find(123, function(){
+  // returns bid 123
+});
+
+store.find({ id: 123 }, function(){
+  // returns bid 123
+});
+
+store.find({ state: 0, locked: 1 }, function(){
+  // returns all bids that has state of 0 and are locked
+});
+
+store.find({ details: 'Hello' }, function(){
+  // returns all bids that contains the word 'Hello' in description
+});
+
+store.find('all', function(){
+  // returns all bids stored
+});
+</code></pre> 
+            <pre><code class="language-javascript">Memory.prototype.find = function (query, fn) {
+  if (!query) throw new Error('Invalid query parameter');
+  if ('object' !== typeof query) {
+    query = {id: query};
+  }
+  var result = [], count = 0, dcount = 0, index, key, data = this.data;
+  this.async(function () {
+    for (var k in query) { count += 1; }
+    for (var h in data) { dcount += 1; }
+    if (!dcount) {
+      if (fn) fn(null, []);
+      return;
+    } else if (query.id &amp;&amp; query.id === 'all') {
+      result = data;
+    } else {
+      if (count) {
+        for (key in data) {
+          var bid = data[key];
+          if (isMatch(bid, query)) {
+            result.push(bid);
+            if (count === 1 &amp;&amp; undefined !== query.id) {
+              index = key;
+              break;
+            }
+          }
+        }
+      } else {
+        if (fn) fn(null, []);
+      }
+    }
+    if (fn) fn(null, result, index);
   });
   return this;
 };</code></pre>
