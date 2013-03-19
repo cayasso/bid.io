@@ -273,7 +273,8 @@
                         }
                         
                         function initGame() {
-                            
+                            posR=Math.floor((Math.random() * 26) + 1);
+                            posC=Math.floor((Math.random() * 60) + 1);
                             currObj = {};
                             currObj = matrix[posR][posC];
                             doClick(currObj.county, currObj.bidId);
