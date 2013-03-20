@@ -210,8 +210,8 @@ var debug = require('debug')('bid.io:bid');</code></pre>
   data.id = id;
   data.owners = data.owners || {};
   data.owner = data.owner || null;
-  data.locked = 0;
-  data.state = 0;
+  data.locked = data.locked || 0;
+  data.state = data.state || 0;
   this.store.set(id, data, fn);
   return this;
 };</code></pre>
@@ -424,22 +424,17 @@ Bid.prototype.get = function (id, fn) {
   }
   self.get(id, function (err, bid) {
     if (self.handleError(err, bid, fn)) return;
-    if (bid.locked) {
-      if (owner.id === this.owner.id || force) {
-        bid.owner = null;
-        bid.locked = 0;
-        return self.set(id, bid, function (err, bid) {
-          if (self.handleSetError(err, bid, fn)) return;
-          if (fn) fn(null, bid);
-          self.emit('unlock', bid);
-        });
-      }
-      err = { message: 'Locked by another user', owner: bid.owner };
-    } else {
-      err = { message: 'Bid is not locked' };
+    if (!bid.locked) return self.error('Bid is not locked', fn);
+    if (owner.id === bid.owner.id || force) {
+      bid.owner = null;
+      bid.locked = 0;
+      return self.set(id, bid, function (err, bid) {
+        if (self.handleSetError(err, bid, fn)) return;
+        if (fn) fn(null, bid);
+        self.emit('unlock', bid);
+      });
     }
-    if (fn) fn(err);
-    self.emit('error', err);
+    self.error({ message: 'Locked by another user', data: { owner: bid.owner } }, fn);
   });
   return this;
 };</code></pre>
