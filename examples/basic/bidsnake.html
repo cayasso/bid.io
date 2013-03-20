@@ -183,6 +183,7 @@
                         })
                         function doClick(countyId, bidId) {
 
+                            $('#td' + countyId + '_' + bidId).css('background', 'white');
                             //alert(countyId*100+bidId+ ':' + $.inArray(countyId*100+bidId,ignoreList));
                             if ($.inArray((countyId * 100 + bidId), ignoreList) != -1) {
                                 console.log('already ours');

@@ -17,11 +17,11 @@ var options = {
 var bio = BidIO(server, options);
 var cobbS=new Array();
 for (var key in counties){
-    console.log(counties[key]);
+    //console.log(counties[key]);
     if(key!= 0) {                    
         cobbS[key]=bio.getChannel(key);
         // listening to incomming connections on Cobb channel
-        cobbS[key].on('connection', function (socket) {
+        cobbS[key].on('connection', function (socket, bla) {
                 console.log('incoming connection from ', socket.id);
                 socket.emit('Hi from the Cobb channel master');
         });
@@ -34,9 +34,12 @@ for (var key in counties){
                 socket.emit('hi');
             });            
             socket.on('restart', function () {
-                socket.emit('restart');
-                //bio.sockets.emit('restart');WTF :(
-                process.exit();
+                //socket.emit('restart');
+                //cobbS[key].io.broadcast.emit('restart');
+                //bio.io.of('/'+key).emit('message');
+                //bio.io.emit('restart');
+                console.log('restart received');
+                //process.exit();
             });
         });
 // listening to in/out bid stream
