@@ -26,7 +26,13 @@
                 <th colspan="11" id="global">&nbsp;</th>
                 <th colspan="11" id="something">&nbsp;</th>
                 <th colspan="11" id="connection">&nbsp;</th>
-                <th colspan="11" id="control"><a onclick="restart()">restart</a></th>
+                <th colspan="6" id="restart"><a onclick="restart()">restart</a></th>
+                <th colspan="5" id="pauseControl"><a onclick="togglePause()">Pause</a></th>
+                <th colspan="1" id="left">&lt;</th>
+                <th colspan="1" id="up">^</th>
+                <th colspan="1" id="down">v</th>
+                <th colspan="1" id="right">&gt;</th>
+                <th colspan="1" id="pause">II</th>
             </tr>
         </table>  
 
@@ -212,21 +218,33 @@
                             console.log(event);
                             var char = getChar(event || window.event)
                             console.log(char);
+                            
+                                $('#left').css('background', 'black');
+                                $('#up').css('background', 'black');
+                                $('#down').css('background', 'black');
+                                $('#right').css('background', 'black');
+                                $('#right').css('background', 'black');
+                            
                             if(char === "a") {
                                 //changeDir("left");
                                 stepDirection="left";
+                                $('#left').css('background', 'orange');
+                                
                             }else
                             if(char === "w") {
                                 //changeDir("up");
                                 stepDirection="up";
+                                $('#up').css('background', 'orange');
                             }else
                             if(char === "s") {
                                 //changeDir("down");
                                 stepDirection="down";
+                                $('#down').css('background', 'orange');
                             }else
                             if(char === "d") {
                                 //changeDir("right");
                                 stepDirection="right";
+                                $('#right').css('background', 'orange');
                             }else
                             if(char === "p"){
                                togglePause();
@@ -265,6 +283,7 @@
                             }
                             
                             makeMove();
+                            
                         }
                         
                         function makeMove() {
@@ -301,8 +320,13 @@
                         function togglePause() {
                                 if(gameRuns) {
                                     gameRuns=false;
+                                    $('#pause').css('background', 'orange');
+                                    $('#pause').html("P");
                                 }else {
                                     gameRuns=true;
+                                    $('#pause').css('background', 'black');
+                                    $('#pause').html("R");
+
                                 }
                         }
                         var steps=0;
