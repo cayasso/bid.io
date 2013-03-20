@@ -103,10 +103,40 @@
                                                     $('#td' + data.county + '_' + data.id).css('background', 'orange');
                                                 }
                                             }
+                                        }else if(action == "lock") {
+                                            console.log(">>>>>> lock",data, action);
+                                            if (typeof data.owner !== undefined && data.owner !== null) {
+                                                //data owner is defined
+                                                //alert(typeof data.owner);
+                                                if (data.owner.id !== undefined) {
+                                                    //doesn't belong to anyone
+                                                    if (data.owner.id == userId) {
+                                                        //we are the owners
+                                                        $('#global').html('we are the owners');
+                                                         $('#td' + data.county + '_' + data.id).css('background', 'blue');
+                                                    } else {
+                                                        $('#global').html('someone else\'s ');
+                                                    }
+                                                } else {
+                                                    //owner.id is not defined
+                                                    $('#global').html('no owner is');
+                                                }
+                                            } else {
+                                                $('#global').html('no owner');
+
+                                                if ($.inArray((data.county * 100 + data.id * 1), waitList) != -1) {
+                                                    $('#td' + data.county + '_' + data.id).css('background', 'blue');
+                                                } else {
+                                                    $('#td' + data.county + '_' + data.id).css('background', 'orange');
+                                                }
+                                            }
 
 
 
-                                        } else if (action == "lock") {
+                                        
+
+
+                                        } else if (action == "complete") {
                                             if (data.owner.id == userId) {
                                                 //it is ours 
                                                 $('#td' + data.county + '_' + data.id).css('background', 'green');
@@ -157,16 +187,17 @@
                             }
                             //matrix[rows][rcols]=bidObj;
 
-                            /*  for (var key in data){
-                             if(key!= 0) {
-                             for(rows=1;rows<=10;rows++){
-                             cobbS[key].complete(rows, { id: 0, name: 0+' bid#'+rows }, 
-                             function (err, res) {
-                             });
+                             for (var key in data){
+                                 if(key!= 0) {
+                                 for(rows=1;rows<=10;rows++){
+                                // cobbS[key].fetch( rows, { id: 0, name: 0+' bid#'+rows }, 
+                                // function (err, res) {
+                                    // console.log('booHoo - nothing happens :O');
+                                // });
+                                 }
+                                 }
                              }
-                             }
-                             }
-                             */
+                             
                             initGame();
                         });//json init --- async !!!!
 
@@ -199,16 +230,16 @@
                                 waitList.push((countyId * 100) + (bidId * 1));
                                 console.log(waitList);
                                 timers[countyId * 100 + bidId] = setTimeout(function() {
-                                    cobbS[countyId].open(bidId, {id: userId, name: userId + ' bid#' + bidId},
-                                    function(err, res) {
-
+                                    cobbS[countyId].complete(bidId, {id: userId, name: userId + ' bid#' + bidId},
+                                    function(err, res,userId,bidId) {
+                                        console.log('complete callback',res,"err");
                                     }
                                     );
                                 }, 3000);
 
-                                cobbS[countyId].fetch(bidId, {id: userId, name: userId + ' bid#' + bidId},
+                                cobbS[countyId].open(bidId, {id: userId, name: userId + ' bid#' + bidId},
                                 function(err, res) {
-
+                                    console.log('open callback',res,"err",err);
                                 }
                                 );
                             }
@@ -360,7 +391,7 @@
                             } else {
                                 
                             }
-                            console.log("steps:",steps, "stepDirection",stepDirection);
+                            //console.log("steps:",steps, "stepDirection",stepDirection);
                             
                         },400);
 
