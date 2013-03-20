@@ -24,7 +24,8 @@
                 </th>
 
                 <th colspan="11" id="global">&nbsp;</th>
-                <th colspan="11" id="something">&nbsp;</th>
+                <th colspan="5" id="something">&nbsp;</th>
+                <th colspan="6" id="motion">&nbsp;</th>
                 <th colspan="11" id="connection">&nbsp;</th>
                 <th colspan="6" id="restart"><a onclick="restart()">restart</a></th>
                 <th colspan="5" id="pauseControl"><a onclick="togglePause()">Pause</a></th>
@@ -42,7 +43,7 @@
 
         <script>
                         var userId = Math.floor((Math.random() * 100) + 1);
-                        $("#something").html("Random user ID:" + userId);
+                        $("#something").html("id:" + userId);
                         matrix = new Array();
                         var posR = 1;
                         var posC = 1;
@@ -223,33 +224,54 @@
                                 $('#up').css('background', 'black');
                                 $('#down').css('background', 'black');
                                 $('#right').css('background', 'black');
-                                $('#right').css('background', 'black');
+                           
                             
                             if(char === "a") {
                                 //changeDir("left");
                                 stepDirection="left";
-                                $('#left').css('background', 'orange');
-                                
+                                //$('#left').css('background', 'orange');
+                                setIndicator('left');
                             }else
                             if(char === "w") {
                                 //changeDir("up");
                                 stepDirection="up";
-                                $('#up').css('background', 'orange');
+                                //$('#up').css('background', 'orange');
+                                setIndicator('up');
                             }else
                             if(char === "s") {
                                 //changeDir("down");
                                 stepDirection="down";
-                                $('#down').css('background', 'orange');
+                                //$('#down').css('background', 'orange');
+                                setIndicator('down');
                             }else
                             if(char === "d") {
                                 //changeDir("right");
                                 stepDirection="right";
-                                $('#right').css('background', 'orange');
+                                //$('#right').css('background', 'orange');
+                                setIndicator('right');
                             }else
                             if(char === "p"){
                                togglePause();
                             }
                             
+                        }
+                        function setIndicator(indirection){
+                                $('#left').css('background', 'black');
+                                $('#up').css('background', 'black');
+                                $('#down').css('background', 'black');
+                                $('#right').css('background', 'black');
+                                $('#right').css('background', 'black');
+                           
+                            if (indirection === "right") {
+                                $('#right').css('background', 'orange');
+                            } else if (indirection === "left") {
+                                $('#left').css('background', 'orange');
+                            } else if (indirection === "down") {
+                                $('#down').css('background', 'orange');
+                            } else if (indirection === "up") {
+                                $('#up').css('background', 'orange');
+                            }
+
                         }
                         
                         function changeDir(direction) {
@@ -342,6 +364,43 @@
                             
                         },400);
 
+                        window.ondeviceorientation = function(event) {
+                             alpha = Math.round(event.alpha);
+                             beta = Math.round(event.beta);
+                             gamma = Math.round(event.gamma);
+                             $('#motion').html(beta+":"+gamma);
+                             if(beta<=-6) {
+                                 stepDirection ="right";
+                             }else if(beta>=6) {
+                                 stepDirection ="left";
+                             }
+                             
+                             if(gamma<=-6) {
+                                 stepDirection ="up";
+                             }else if(gamma>=6) {
+                                 stepDirection ="down";
+                             }
+                             
+                             setIndicator(stepDirection);
+                             /*
+                              * Ancient stuff 
+                                window.ondevicemotion = function(event) {
+                                  ax = event.accelerationIncludingGravity.x
+                                  ay = event.accelerationIncludingGravity.y
+                                  az = event.accelerationIncludingGravity.z
+                                  rotation = event.rotationRate;
+                                  if (rotation != null) {
+                                    arAlpha = Math.round(rotation.alpha);
+                                    arBeta = Math.round(rotation.beta);
+                                    arGamma = Math.round(rotation.gamma);
+                                  }
+                              * 
+                              * 
+                              * 
+                              * 
+                              */
+                             
+                        }
                         /*
                          * 
                          var Cobb = bio.join(32);      
