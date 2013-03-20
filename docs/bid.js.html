@@ -83,7 +83,7 @@
               </li>
               <li><a href="#lock"><i class="alert alert-info"></i>lock</a>
               </li>
-              <li><a href="#forcelock"><i class="alert alert-info"></i>forcelock</a>
+              <li><a href="#claim"><i class="alert alert-info"></i>claim</a>
               </li>
               <li><a href="#unlock"><i class="alert alert-info"></i>unlock</a>
               </li>
@@ -347,11 +347,11 @@ Bid.prototype.get = function (id, fn) {
   return this;
 };</code></pre>
           </div>
-          <section id="forcelock">
-            <h1>forcelock</h1>
+          <section id="claim">
+            <h1>claim</h1>
             <h5 class="subheader"></h5>
             <p>
-              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.forcelock()</span> -><span>Bid</span>
+              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.claim()</span> -><span>Bid</span>
             </p>
           </section>
           <table class="table table-bordered table-striped">
@@ -381,7 +381,7 @@ Bid.prototype.get = function (id, fn) {
             </tbody>
           </table>
           <div class="description"><p>Force lock a <code>bid</code>.</p> 
-            <pre><code class="language-javascript">Bid.prototype.forcelock = function (id, owner, fn) {
+            <pre><code class="language-javascript">Bid.prototype.claim = function (id, owner, fn) {
   this.lock(id, owner, true, fn);
   return this;
 };</code></pre>
