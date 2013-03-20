@@ -83,11 +83,11 @@
               </li>
               <li><a href="#lock"><i class="alert alert-info"></i>lock</a>
               </li>
-              <li><a href="#forceLock"><i class="alert alert-info"></i>forceLock</a>
+              <li><a href="#forcelock"><i class="alert alert-info"></i>forcelock</a>
               </li>
               <li><a href="#unlock"><i class="alert alert-info"></i>unlock</a>
               </li>
-              <li><a href="#forceUnlock"><i class="alert alert-info"></i>forceUnlock</a>
+              <li><a href="#forceunlock"><i class="alert alert-info"></i>forceunlock</a>
               </li>
               <li><a href="#pending"><i class="alert alert-info"></i>pending</a>
               </li>
@@ -347,11 +347,11 @@ Bid.prototype.get = function (id, fn) {
   return this;
 };</code></pre>
           </div>
-          <section id="forceLock">
-            <h1>forceLock</h1>
+          <section id="forcelock">
+            <h1>forcelock</h1>
             <h5 class="subheader"></h5>
             <p>
-              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.forceLock()</span> -><span>Bid</span>
+              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.forcelock()</span> -><span>Bid</span>
             </p>
           </section>
           <table class="table table-bordered table-striped">
@@ -381,7 +381,7 @@ Bid.prototype.get = function (id, fn) {
             </tbody>
           </table>
           <div class="description"><p>Force lock a <code>bid</code>.</p> 
-            <pre><code class="language-javascript">Bid.prototype.forceLock = function (id, owner, fn) {
+            <pre><code class="language-javascript">Bid.prototype.forcelock = function (id, owner, fn) {
   this.lock(id, owner, true, fn);
   return this;
 };</code></pre>
@@ -439,11 +439,11 @@ Bid.prototype.get = function (id, fn) {
   return this;
 };</code></pre>
           </div>
-          <section id="forceUnlock">
-            <h1>forceUnlock</h1>
+          <section id="forceunlock">
+            <h1>forceunlock</h1>
             <h5 class="subheader"></h5>
             <p>
-              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.forceUnlock()</span> -><span>Bid</span>
+              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.forceunlock()</span> -><span>Bid</span>
             </p>
           </section>
           <table class="table table-bordered table-striped">
@@ -473,7 +473,7 @@ Bid.prototype.get = function (id, fn) {
             </tbody>
           </table>
           <div class="description"><p>Force unlock a <code>bid</code>.</p> 
-            <pre><code class="language-javascript">Bid.prototype.forceUnlock = function (id, oid, fn) {
+            <pre><code class="language-javascript">Bid.prototype.forceunlock = function (id, oid, fn) {
   this.unlock(id, oid, true, fn);
   return this;
 };</code></pre>
