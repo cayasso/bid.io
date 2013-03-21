@@ -18,24 +18,28 @@
                 </tr>
             </table>
         -->
-        <table id="bidMatrix" border="1" cellpadding="2" cellspacing="0">
-            <tr>
-                <th colspan="11" id="local">nav wasd, p=pause
-                </th>
+        <div id="basePlate">
+            <table id="bidMatrix" border="1" cellpadding="2" cellspacing="0">
+                <tr>
+                    <th rowspan="28"></th>
+                    <th colspan="11" id="local">nav wasd, p=pause
+                    </th>
 
-                <th colspan="11" id="global">&nbsp;</th>
-                <th colspan="5" id="something">&nbsp;</th>
-                <th colspan="6" id="motion">&nbsp;</th>
-                <th colspan="11" id="connection">&nbsp;</th>
-                <th colspan="6" id="restart"><a onclick="restart()">restart</a></th>
-                <th colspan="5" id="pauseControl"><a onclick="togglePause()">Pause</a></th>
-                <th colspan="1" id="left">&lt;</th>
-                <th colspan="1" id="up">^</th>
-                <th colspan="1" id="down">v</th>
-                <th colspan="1" id="right">&gt;</th>
-                <th colspan="1" id="pause">II</th>
-            </tr>
-        </table>  
+                    <th colspan="11" id="global">&nbsp;</th>
+                    <th colspan="5" id="something">&nbsp;</th>
+                    <th colspan="6" id="motion">&nbsp;</th>
+                    <th colspan="11" id="connection">&nbsp;</th>
+                    <th colspan="6" id="restart"><a onclick="restart()">restart</a></th>
+                    <th colspan="5" id="pauseControl"><a onclick="togglePause()">Pause</a></th>
+                    <th colspan="1" id="left">&lt;</th>
+                    <th colspan="1" id="up">^</th>
+                    <th colspan="1" id="down">v</th>
+                    <th colspan="1" id="right">&gt;</th>
+                    <th colspan="1" id="pause">II</th>
+                    <th rowspan="28"></th>
+                </tr>
+            </table>  
+        </div>
 
         <script src="//code.jquery.com/jquery-1.9.1.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
@@ -399,6 +403,7 @@
                              alpha = Math.round(event.alpha);
                              beta = Math.round(event.beta);
                              gamma = Math.round(event.gamma);
+                             
                              $('#motion').html(beta+":"+gamma);
                              if(beta<=-6) {
                                  stepDirection ="right";
@@ -411,8 +416,9 @@
                              }else if(gamma>=6) {
                                  stepDirection ="down";
                              }
-                             
+                             rotate4d(gamma,beta,alpha);
                              setIndicator(stepDirection);
+                             
                              /*
                               * Ancient stuff 
                                 window.ondevicemotion = function(event) {
@@ -471,6 +477,37 @@
                             this.length = from < 0 ? this.length + from : from;
                             return this.push.apply(this, rest);
                         };
+                        
+                        function rotate4d(x,y,z){
+                            return; //performance SUX
+                            var xDeg=x*5;
+                            var yDeg=y*5;
+                            var zDeg=1;
+                            
+                            //alert('rotate')
+                            $("#basePlate").css({ WebkitTransform: 'rotate3d(' + xDeg +','+yDeg+','+0+',' + '10deg)'});
+                            $("#basePlate").css({ '-webkit-transform': 'perspective(90)  rotate3d(' + xDeg +', '+yDeg+', '+0+', ' + '1deg)'});
+                            $("#basePlate").css({ '-moz-transform': 'rotate3d(' + xDeg +', '+yDeg+', '+0+', ' + '10deg)'});
+                            //$("#basePlate").css({ '-webkit-transform': 'rotate3d(' + 22 +', '+33+', '+0+', ' + '45deg )'});
+                            
+                            //$("#debug").html('WebkitTransform: rotate3d(' + xDeg +','+yDeg+','+zDeg+',' + '10deg)');
+                            //$("#basePlate").css({ WebkitTransform: 'rotateY(' + y + 'deg)'});
+                            //$("#basePlate").css({ '-moz-transform': 'rotateY(' + y + 'deg)'});
+                        }
+                        function rotate2d(degree) {
+                            $("#basePlate").css({ WebkitTransform: 'rotate(' + degree + 'deg)'});
+                            $("#basePlate").css({ '-moz-transform': 'rotate(' + degree + 'deg)'});
+                            //alert('rotate');
+                        }
+                        //$("#basePlate").css({ '-moz-transform': 'rotated3d(' + 22 +', '+33+', '+0+', ' + '45deg )'});
+                        $("#basePlate").css({ '-webkit-transform-style': 'preserve-3d;'});
+                        $("#basePlate").css({ '-webkit-transform': 'perspective(211)'});
+
         </script>
+        <div id="debug"></div>
+        <a onclick="togglePause()">Toggle pause</a>
+        <a onclick="rotate4d(22,33,44)">Rotate test</a>
+        <a onclick="rotate4d(0,0,0)">Rotate back</a>
+        
     </body>
 </html>
