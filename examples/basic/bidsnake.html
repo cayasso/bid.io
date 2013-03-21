@@ -91,12 +91,16 @@
                                                     if (data.owner.id == userId) {
                                                         //we are the owners
                                                         $('#global').html('we are the owners');
+                                                        $('#td' + data.county + '_' + data.id).css('background', 'pink');
                                                     } else {
                                                         $('#global').html('someone else\'s ');
+                                                        $('#debug').append(data);
+                                                        $('#td' + data.county + '_' + data.id).css('background', 'yellow');
                                                     }
                                                 } else {
                                                     //owner.id is not defined
                                                     $('#global').html('no owner is');
+                                                    $('#td' + data.county + '_' + data.id).css('background', 'grey');
                                                 }
                                             } else {
                                                 $('#global').html('no owner');
@@ -104,7 +108,7 @@
                                                 if ($.inArray((data.county * 100 + data.id * 1), waitList) != -1) {
                                                     $('#td' + data.county + '_' + data.id).css('background', 'blue');
                                                 } else {
-                                                    $('#td' + data.county + '_' + data.id).css('background', 'orange');
+                                                    $('#td' + data.county + '_' + data.id).css('background', 'black');
                                                 }
                                             }
                                         }else if(action == "lock") {
@@ -194,10 +198,10 @@
                              for (var key in data){
                                  if(key!= 0) {
                                  for(rows=1;rows<=10;rows++){
-                                // cobbS[key].fetch( rows, { id: 0, name: 0+' bid#'+rows }, 
-                                // function (err, res) {
+                                 cobbS[key].fetch( rows, { id: 0, name: 0+' bid#'+rows }, 
+                                 function (err, res) {
                                     // console.log('booHoo - nothing happens :O');
-                                // });
+                                 });
                                  }
                                  }
                              }
