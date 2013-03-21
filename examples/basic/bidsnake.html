@@ -46,6 +46,7 @@
         <script src="/bid.io.js"></script>
 
         <script>
+            
                         var userId = Math.floor((Math.random() * 100) + 1);
                         $("#something").html("id:" + userId);
                         matrix = new Array();
@@ -56,6 +57,8 @@
                         var cols = 0;
                         var rcols = 0; //real columns (not just counter withing counties)
                         var cobbS = new Array();
+                        
+                        var gamesocket=  io.connect('http://'+window.location.hostname+':3001');
                         var timers = new Array(); //to store cancellable timers timers[countyID*100+bidId]
                         var ignoreList = [];// timers[countyId*100+bidId]
                         var waitList = [];
@@ -124,6 +127,7 @@
                                                          $('#td' + data.county + '_' + data.id).css('background', 'blue');
                                                     } else {
                                                         $('#global').html('someone else\'s ');
+                                                        $('#td' + data.county + '_' + data.id).css('background', '#880000');
                                                     }
                                                 } else {
                                                     //owner.id is not defined
@@ -198,10 +202,10 @@
                              for (var key in data){
                                  if(key!= 0) {
                                  for(rows=1;rows<=10;rows++){
-                                 cobbS[key].fetch( rows, { id: 0, name: 0+' bid#'+rows }, 
-                                 function (err, res) {
+                         //        cobbS[key].fetch( rows, { id: 0, name: 0+' bid#'+rows }, 
+                           //      function (err, res) {
                                     // console.log('booHoo - nothing happens :O');
-                                 });
+                             //    });
                                  }
                                  }
                              }
@@ -222,11 +226,22 @@
                             //   console.log('============ HI =============');
                             ///});
                             
-                            socket.on('restart',function(data){
-                                console.log('restart req received');
-                            });
+                            //socket.on('restart',function(data){
+                            //    console.log('restart req received');
+                            //;});
                             $('#connection').html('<font color=green>connected</font>');
-                        })
+                        });
+                        
+                        gamesocket.on('restart',function(){                            
+                            pause();
+                            $('#connection').html('Restarting');
+                            $('#connection').css('background','red');
+                            setTimeout(function(){
+                               //alert('restarting now');
+                               location.reload(); 
+                            },5000);
+                            
+                        });
                         function doClick(countyId, bidId) {
 
                             $('#td' + countyId + '_' + bidId).css('background', 'white');
@@ -364,7 +379,7 @@
                         }
                         
                         function restart() {
-                            socket.emit('restart');
+                            gamesocket.emit('restart');
                             
                         }
                         // event.type must wwbe keypress
@@ -377,7 +392,9 @@
                             return null // special key
                           }
                         }
-                        
+                        function pause() {
+                            gameRuns=false;
+                        }
                         function togglePause() {
                                 if(gameRuns) {
                                     gameRuns=false;

@@ -1,9 +1,10 @@
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
+var gameserver = require('http').Server(app);
 var counties = require('./channels');
 var BidIO = require('../../');
-
+var io    = require('socket.io');
 
 // Express stuff
 app.use(express.static(__dirname));
@@ -22,12 +23,12 @@ for (var key in counties){
         cobbS[key]=bio.getChannel(key);
         // listening to incomming connections on Cobb channel
         cobbS[key].on('connection', function (socket, bla) {
-                console.log('incoming connection from ', socket.id);
+              //  console.log('incoming connection from ', socket.id);
                 socket.emit('Hi from the Cobb channel master');
         });
 
         bio.io.on('connection', function (socket) {
-	console.log('CONNECTED');
+	//console.log('CONNECTED');
 	socket.emit('hi');
             socket.on('hi', function () {
                 console.log('============ HI =============');
@@ -54,6 +55,21 @@ for (var key in counties){
         }
      }
  }
+
+gameserver.listen(3001);
+var gameio = require('socket.io').listen(gameserver);
+gameio.sockets.on('connection',function(gamesocket) {
+    gamesocket.on('restart',function(){
+        gamesocket.broadcast.emit('restart');
+        gamesocket.emit('restart');
+        console.log("restart requested 3 sec delay");
+        setTimeout(function() {
+            console.log("restart imminent");
+            process.exit();
+        },3000);
+    })
+
+})
 
 
 /* 
