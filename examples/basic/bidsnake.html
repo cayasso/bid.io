@@ -402,23 +402,26 @@
                             //console.log("steps:",steps, "stepDirection",stepDirection);
                             
                         },400);
-
+                        
                         window.ondeviceorientation = function(event) {
                              alpha = Math.round(event.alpha);
                              beta = Math.round(event.beta);
                              gamma = Math.round(event.gamma);
+                             $("#debug").html(event.webkitCompassHeading);
                              
                              $('#motion').html(beta+":"+gamma);
-                             if(beta<=-6) {
-                                 stepDirection ="right";
-                             }else if(beta>=6) {
-                                 stepDirection ="left";
-                             }
-                             
-                             if(gamma<=-6) {
-                                 stepDirection ="up";
-                             }else if(gamma>=6) {
-                                 stepDirection ="down";
+                             if(Math.abs(beta)>Math.abs(gamma)) {
+                                 if(beta<=-6) {
+                                     stepDirection ="right";
+                                 }else if(beta>=6) {
+                                     stepDirection ="left";
+                                 }
+                             }else {
+                                 if(gamma<=-6) {
+                                     stepDirection ="up";
+                                 }else if(gamma>=6) {
+                                     stepDirection ="down";
+                                 }
                              }
                              rotate4d(gamma,beta,alpha);
                              setIndicator(stepDirection);

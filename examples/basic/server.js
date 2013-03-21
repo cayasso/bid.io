@@ -38,8 +38,8 @@ for (var key in counties){
                 //cobbS[key].io.broadcast.emit('restart');
                 //bio.io.of('/'+key).emit('message');
                 //bio.io.emit('restart');
-                console.log('restart received');
-                //process.exit();
+                //console.log('restart received');
+                process.exit();
             });
         });
 // listening to in/out bid stream
