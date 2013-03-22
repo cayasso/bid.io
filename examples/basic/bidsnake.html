@@ -255,14 +255,29 @@
                                 timers[countyId * 100 + bidId] = setTimeout(function() {
                                     cobbS[countyId].complete(bidId, {id: userId, name: userId + ' bid#' + bidId},
                                     function(err, res,userId,bidId) {
-                                        console.log('complete callback',res,"err");
+                                        console.log('complete callback',res,err);
+                                      
+                                        console.log('trying to forceunlock');
+                                        cobbS[countyId].forceunlock(bidId, {id: userId, name: userId + ' bid#' + bidId},
+                                            function(err, res,userId,bidId) {
+                                                console.log('forceunlock callback',res,err);
+                                            }
+                                        );
+        
+        
                                     }
                                     );
-                                }, 3000);
+                                }, 10000);
 
                                 cobbS[countyId].open(bidId, {id: userId, name: userId + ' bid#' + bidId},
                                 function(err, res) {
                                     console.log('open callback',res,"err",err);
+                                    
+                                    cobbS[countyId].claim(bidId, {id: userId, name: userId + ' bid#' + bidId},
+                                            function(err, res,userId,bidId) {
+                                                console.log('claim callback',res,err);
+                                            }
+                                        );
                                 }
                                 );
                             }
