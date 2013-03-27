@@ -46,6 +46,7 @@
         <script src="/bid.io.js"></script>
 
         <script>
+            
                         var userId = Math.floor((Math.random() * 100) + 1);
                         $("#something").html("id:" + userId);
                         matrix = new Array();
@@ -56,6 +57,7 @@
                         var cols = 0;
                         var rcols = 0; //real columns (not just counter withing counties)
                         var cobbS = new Array();
+                        
                         var gamesocket=  io.connect('http://'+window.location.hostname+':3001');
                         var timers = new Array(); //to store cancellable timers timers[countyID*100+bidId]
                         var ignoreList = [];// timers[countyId*100+bidId]
@@ -66,7 +68,13 @@
                             channelList = data;
                             //console.log(typeof data);
                             newRows = '<tr>';
-                           
+                            /*<td colspan=10>1</td>\n\
+                             <td colspan=10></td>\n\
+                             <td colspan=10></td>\n\
+                             <td colspan=10></td>\n\
+                             </tr><tr>';
+                             */
+
 
                             for (var key in data) {
                                 if (key != 0) {
