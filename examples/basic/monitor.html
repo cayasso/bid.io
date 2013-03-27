@@ -9,7 +9,7 @@
        
         
         <div id="basePlate">
-            <table id="actionlist" border="1" cellpadding="2" cellspacing="0">
+            <table id="actionList" border="1" cellpadding="2" cellspacing="0">
                 <tr>
                     <th rowspan="28"></th>
                     <th colspan="1" id="up">^</th>
@@ -27,28 +27,37 @@
         <script>
         var cobbS = new Array(); 
         counter=0;
+        var newRow="";
         $.getJSON("channels.json", function(data) {
         channelList = data;
-        newRows = '<tr>';
+        
         for (var key in data) {
             if (key != 0) {
                 cobbS[key] = bio.join(key);
                 cobbS[key].watch(function(data, action) {
                 console.log('WATCHING: ', action, data);
                     if (action == "fetch") {
-
-                    }else if(action == "lock") {
+                        newRow="<tr>"; 
+                        newRow+="<td>"+""+"</td>"; 
+                        newRow+="<td>"+""+"</td>"; 
+                        newRow+="<td>"+""+"</td>"; 
+                        newRow+="<td>"+""+"</td>"; 
+                        newRow+="<td>"+""+"</td>"; 
+                        newRow+="<td>"+""+"</td>"; 
+            
+                        newRow+="</tr>"; 
+                        $('#actionList tr:last').after(newRow);
+                    } else if(action == "lock") {
 
                     } else if (action == "complete") {
 
                     }
                 });
 
-                $('#bidMatrix tr:last').after(newRows);
+               
 
             }//if key not 0
         }// freaking long foreach on the bids objec (counties in reality) ;)
-        $('#bidMatrix tr:last').after(newRows);
         
         });//json init --- async !!!!
 
