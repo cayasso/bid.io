@@ -20,340 +20,50 @@
                 </tr>
             </table>  
         </div>
-        <script src="//code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="/jquery-1.9.1.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="/bid.io.js"></script>
 
         <script>
-                        var cobbS = new Array(); 
-                        $.getJSON("channels.json", function(data) {
-                            channelList = data;
-                            newRows = '<tr>';
-                            for (var key in data) {
-                                if (key != 0) {
-                                    cobbS[key] = bio.join(key);
-                                    cobbS[key].watch(function(data, action) {
-                                        console.log('WATCHING: ', action, data);
-                                        if (action == "fetch") {
-                                            if (typeof data.owner !== undefined && data.owner !== null) {
-                                                //data owner is defined
-                                                //alert(typeof data.owner);
-                                                if (data.owner.id !== undefined) {
-                                                    //doesn't belong to anyone
-                                                    if (data.owner.id == userId) {
-                                                        //we are the owners
-                                                        $('#global').html('we are the owners');
-                                                        $('#td' + data.county + '_' + data.id).css('background', 'pink');
-                                                    } else {
-                                                        $('#global').html('someone else\'s ');
-                                                        $('#debug').append(data);
-                                                        $('#td' + data.county + '_' + data.id).css('background', 'yellow');
-                                                    }
-                                                } else {
-                                                    //owner.id is not defined
-                                                    $('#global').html('no owner is');
-                                                    $('#td' + data.county + '_' + data.id).css('background', 'grey');
-                                                }
-                                            } else {
-                                                $('#global').html('no owner');
+        var cobbS = new Array(); 
+        counter=0;
+        $.getJSON("channels.json", function(data) {
+        channelList = data;
+        newRows = '<tr>';
+        for (var key in data) {
+            if (key != 0) {
+                cobbS[key] = bio.join(key);
+                cobbS[key].watch(function(data, action) {
+                console.log('WATCHING: ', action, data);
+                    if (action == "fetch") {
 
-                                                if ($.inArray((data.county * 100 + data.id * 1), waitList) != -1) {
-                                                    $('#td' + data.county + '_' + data.id).css('background', 'blue');
-                                                } else {
-                                                    $('#td' + data.county + '_' + data.id).css('background', 'black');
-                                                }
-                                            }
-                                        }else if(action == "lock") {
-                                            console.log(">>>>>> lock",data, action);
-                                            if (typeof data.owner !== undefined && data.owner !== null) {
-                                                //data owner is defined
-                                                //alert(typeof data.owner);
-                                                if (data.owner.id !== undefined) {
-                                                    //doesn't belong to anyone
-                                                    if (data.owner.id == userId) {
-                                                        //we are the owners
-                                                        $('#global').html('we are the owners');
-                                                         $('#td' + data.county + '_' + data.id).css('background', 'blue');
-                                                    } else {
-                                                        $('#global').html('someone else\'s ');
-                                                        $('#td' + data.county + '_' + data.id).css('background', '#880000');
-                                                    }
-                                                } else {
-                                                    //owner.id is not defined
-                                                    $('#global').html('no owner is');
-                                                }
-                                            } else {
-                                                $('#global').html('no owner');
+                    }else if(action == "lock") {
 
-                                                if ($.inArray((data.county * 100 + data.id * 1), waitList) != -1) {
-                                                    $('#td' + data.county + '_' + data.id).css('background', 'blue');
-                                                } else {
-                                                    $('#td' + data.county + '_' + data.id).css('background', 'orange');
-                                                }
-                                            }
+                    } else if (action == "complete") {
 
+                    }
+                });
 
+                $('#bidMatrix tr:last').after(newRows);
 
-                                        
-
-
-                                        } else if (action == "complete") {
-                                            if (data.owner.id == userId) {
-                                                //it is ours 
-                                                $('#td' + data.county + '_' + data.id).css('background', 'green');
-                                                ignoreList.push(((data.county * 100) + (data.id * 1)));
-                                                console.log(ignoreList);
-                                            } else {
-                                                $('#td' + data.county + '_' + data.id).css('background', 'red');
-                                            }
-                                        }
-                                    })
-
-                                    if (counter % 6 == 0) {
-                                        newRows += '</tr>';
-                                        $('#bidMatrix tr:last').after(newRows);
-                                        //console.log(counter);
-                                        newRows = '<tr>';
-
-                                        rows++;
-                                        matrix[rows] = new Array();
-                                        rcols = 0;
-                                    }
-                                    //console.log(data[key])
-                                    //newRows+='<td>'+data[key]+'</td>';
-                                    for (cols = 1; cols <= 10; cols++) {
-
-                                        rcols++;
-                                        //console.log(key);
-                                        bidObj = {};
-                                        bidObj.county = key;
-                                        bidObj.bidId = cols;
-                                        //newRows += '<td onclick="doClick(' + key + ',' + cols + ');" id="td' + key + '_' + (cols) + '"><font size=1%>' + rows + ":" + (rcols) + '&nbsp;</font></td>';
-                                        newRows += '<td width="10px" height="10px" onclick="doClick(' + key + ',' + cols + ');" id="td' + key + '_' + (cols) + '"></td>';
-                                        matrix[rows][rcols] = bidObj;
-
-                                    }
-                                    counter++;
-                                }//if key not 0
-                            }// freaking long foreach on the bids objec (counties in reality) ;)
-                            newRows += "</tr>";
-                            $('#bidMatrix tr:last').after(newRows);
-                            console.log("rows, rcols", rows, rcols);
-
-                     
-                        });//json init --- async !!!!
-
-
-                        bio = bio(io, 'http://' + window.location.hostname + ':3000');
-
-
-                        var socket = bio.connect();
-
-                        socket.on('connect', function() {
-                            $('#connection').html('<font color=green>connected</font>');
-                        });
-                        
-                        gamesocket.on('restart',function(){                            
-                            pause();
-                            $('#connection').html('Restarting');
-                            $('#connection').css('background','red');
-                            setTimeout(function(){
-                               //alert('restarting now');
-                               location.reload(); 
-                            },5000);
-                            
-                        });
-                        function doClick(countyId, bidId) {
-
-                            $('#td' + countyId + '_' + bidId).css('background', 'white');
-                            //alert(countyId*100+bidId+ ':' + $.inArray(countyId*100+bidId,ignoreList));
-                            if ($.inArray((countyId * 100 + bidId), ignoreList) != -1) {
-                                console.log('already ours');
-                                console.log(ignoreList);
-                            } else {
-                                waitList.push((countyId * 100) + (bidId * 1));
-                                console.log(waitList);
-                                timers[countyId * 100 + bidId] = setTimeout(function() {
-                                    cobbS[countyId].complete(bidId, {id: userId, name: userId + ' bid#' + bidId},
-                                    function(err, res,userId,bidId) {
-                                        console.log('complete callback',res,err);
-                                      
-                                        console.log('trying to forceunlock');
-                                        cobbS[countyId].forceunlock(bidId, {id: userId, name: userId + ' bid#' + bidId},
-                                            function(err, res,userId,bidId) {
-                                                console.log('forceunlock callback',res,err);
-                                            }
-                                        );
+            }//if key not 0
+        }// freaking long foreach on the bids objec (counties in reality) ;)
+        $('#bidMatrix tr:last').after(newRows);
         
-        
-                                    }
-                                    );
-                                }, 10000);
+        });//json init --- async !!!!
 
-                                cobbS[countyId].open(bidId, {id: userId, name: userId + ' bid#' + bidId},
-                                function(err, res) {
-                                    console.log('open callback',res,"err",err);
-                                    
-                                    cobbS[countyId].claim(bidId, {id: userId, name: userId + ' bid#' + bidId},
-                                            function(err, res,userId,bidId) {
-                                                console.log('claim callback',res,err);
-                                            }
-                                        );
-                                }
-                                );
-                            }
-                        }
-                        var stepDirection="right";
-                        
-                        function keyPress(event) {
-                            console.log(event);
-                            var char = getChar(event || window.event)
-                            console.log(char);
-                            
-                                $('#left').css('background', 'black');
-                                $('#up').css('background', 'black');
-                                $('#down').css('background', 'black');
-                                $('#right').css('background', 'black');
-                           
-                            
-                            if(char === "a") {
-                                //changeDir("left");
-                                stepDirection="left";
-                                //$('#left').css('background', 'orange');
-                                setIndicator('left');
-                            }else
-                            if(char === "w") {
-                                //changeDir("up");
-                                stepDirection="up";
-                                //$('#up').css('background', 'orange');
-                                setIndicator('up');
-                            }else
-                            if(char === "s") {
-                                //changeDir("down");
-                                stepDirection="down";
-                                //$('#down').css('background', 'orange');
-                                setIndicator('down');
-                            }else
-                            if(char === "d") {
-                                //changeDir("right");
-                                stepDirection="right";
-                                //$('#right').css('background', 'orange');
-                                setIndicator('right');
-                            }else
-                            if(char === "p"){
-                               togglePause();
-                            }
-                            
-                        }
-                        function setIndicator(indirection){
-                                $('#left').css('background', 'black');
-                                $('#up').css('background', 'black');
-                                $('#down').css('background', 'black');
-                                $('#right').css('background', 'black');
-                                $('#right').css('background', 'black');
-                           
-                            if (indirection === "right") {
-                                $('#right').css('background', 'orange');
-                            } else if (indirection === "left") {
-                                $('#left').css('background', 'orange');
-                            } else if (indirection === "down") {
-                                $('#down').css('background', 'orange');
-                            } else if (indirection === "up") {
-                                $('#up').css('background', 'orange');
-                            }
+        bio = bio(io, 'http://' + window.location.hostname + ':3000');
+        var socket = bio.connect();
+        socket.on('connect', function() {
+            $('#connection').html('<font color=green>connected</font>');
+        });
 
-                        }
-                        
-                        function changeDir(direction) {
-                            console.log(direction);
-                            if (direction === "right") {
-                                if (posC < 60) {
-                                    posC++;
-                                } else {
-                                    youDie("lol");
-                                }
-                            } else if (direction === "left") {
-                                if (posC > 1) {
-                                    posC--;
-                                }else{
-                                    youDie("lol");
-                                }
-
-                            } else if (direction === "down") {
-                                if (posR < 26) {
-                                    posR++;
-                                } else {
-                                    youDie("lol");
-                                }
-                                
-                            } else if (direction === "up") {
-                                if (posR > 1) {
-                                    posR--;
-                                } else {
-                                    youDie("lol");
-                                }
-                            }
-                            
-                            makeMove();
-                            
-                        }
-                        
-                        function makeMove() {
-                            console.log(posR, posC);
-                             currObj = matrix[posR][posC];
-                             doClick(currObj.county, currObj.bidId);
-                        }
-                        
-                        function initGame() {
-                            posR=Math.floor((Math.random() * 26) + 1);
-                            posC=Math.floor((Math.random() * 60) + 1);
-                            currObj = {};
-                            currObj = matrix[posR][posC];
-                            doClick(currObj.county, currObj.bidId);
-                            direction = 'right';
-                            
-                        }
-                        
-                        function restart() {
-                            gamesocket.emit('restart');
-                            
-                        }
-                        // event.type must wwbe keypress
-                        function getChar(event) {
-                          if (event.which == null) {
-                            return String.fromCharCode(event.keyCode) // IE
-                          } else if (event.which!=0 && event.charCode!=0) {
-                            return String.fromCharCode(event.which)   // the rest
-                          } else {
-                            return null // special key
-                          }
-                        }
-                        function pause() {
-                            gameRuns=false;
-                        }
-                        function togglePause() {
-                                if(gameRuns) {
-                                    gameRuns=false;
-                                    $('#pause').css('background', 'orange');
-                                    $('#pause').html("P");
-                                }else {
-                                    gameRuns=true;
-                                    $('#pause').css('background', 'black');
-                                    $('#pause').html("R");
-
-                                }
-                        }
-
-                        Array.prototype.remove = function(from, to) {
-                            var rest = this.slice((to || from) + 1 || this.length);
-                            this.length = from < 0 ? this.length + from : from;
-                            return this.push.apply(this, rest);
-                        };
-                        
-                      
+        Array.prototype.remove = function(from, to) {
+            var rest = this.slice((to || from) + 1 || this.length);
+            this.length = from < 0 ? this.length + from : from;
+            return this.push.apply(this, rest);
+        };
         </script>
         <div id="debug"></div>
-
-        
     </body>
 </html>
