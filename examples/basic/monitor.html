@@ -6,32 +6,12 @@
 
     </head>
     <body onkeypress="keyPress(event)">
-        <!--<table>
-                <tr>
-                    <td></td><td><a onclick="changeDir('up')">&nbsp;^&nbsp;</a></td><td></td>
-                </tr>
-                <tr>
-                    <td><a onclick="changeDir('left')">&nbsp;&lt;&nbsp;</a></td><td></td><td><a onclick="changeDir('right');">&nbsp;&gt;&nbsp;</a></td>
-                </tr>
-                <tr>
-                    <td></td><td><a onclick="changeDir('down')">&nbsp;v&nbsp;</a></td><td></td>
-                </tr>
-            </table>
-        -->
+       
+        
         <div id="basePlate">
-            <table id="bidMatrix" border="1" cellpadding="2" cellspacing="0">
+            <table id="actionlist" border="1" cellpadding="2" cellspacing="0">
                 <tr>
                     <th rowspan="28"></th>
-                    <th colspan="11" id="local">nav wasd, p=pause
-                    </th>
-
-                    <th colspan="11" id="global">&nbsp;</th>
-                    <th colspan="5" id="something">&nbsp;</th>
-                    <th colspan="6" id="motion">&nbsp;</th>
-                    <th colspan="11" id="connection">&nbsp;</th>
-                    <th colspan="6" id="restart"><a onclick="restart()">restart</a></th>
-                    <th colspan="5" id="pauseControl"><a onclick="togglePause()">Pause</a></th>
-                    <th colspan="1" id="left">&lt;</th>
                     <th colspan="1" id="up">^</th>
                     <th colspan="1" id="down">v</th>
                     <th colspan="1" id="right">&gt;</th>
@@ -40,52 +20,21 @@
                 </tr>
             </table>  
         </div>
-
         <script src="//code.jquery.com/jquery-1.9.1.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="/bid.io.js"></script>
 
         <script>
-            
-                        var userId = Math.floor((Math.random() * 100) + 1);
-                        $("#something").html("id:" + userId);
-                        matrix = new Array();
-                        var posR = 1;
-                        var posC = 1;
-                        var counter = 0;
-                        var rows = 0;
-                        var cols = 0;
-                        var rcols = 0; //real columns (not just counter withing counties)
-                        var cobbS = new Array();
-                        
-                        var gamesocket=  io.connect('http://'+window.location.hostname+':3001');
-                        var timers = new Array(); //to store cancellable timers timers[countyID*100+bidId]
-                        var ignoreList = [];// timers[countyId*100+bidId]
-                        var waitList = [];
-                        var gameRuns = false;
-                        var playerReady=false;
+                        var cobbS = new Array(); 
                         $.getJSON("channels.json", function(data) {
                             channelList = data;
-                            //console.log(typeof data);
                             newRows = '<tr>';
-                            /*<td colspan=10>1</td>\n\
-                             <td colspan=10></td>\n\
-                             <td colspan=10></td>\n\
-                             <td colspan=10></td>\n\
-                             </tr><tr>';
-                             */
-
-
                             for (var key in data) {
                                 if (key != 0) {
-
-
-
                                     cobbS[key] = bio.join(key);
                                     cobbS[key].watch(function(data, action) {
                                         console.log('WATCHING: ', action, data);
                                         if (action == "fetch") {
-
                                             if (typeof data.owner !== undefined && data.owner !== null) {
                                                 //data owner is defined
                                                 //alert(typeof data.owner);
@@ -191,26 +140,7 @@
                             $('#bidMatrix tr:last').after(newRows);
                             console.log("rows, rcols", rows, rcols);
 
-                            for (r = 1; r <= rows; r++) {
-                                for (c = 1; c <= rcols; c++) {
-                                    //console.log(matrix[r][c]);
-
-                                }
-                            }
-                            //matrix[rows][rcols]=bidObj;
-
-                             for (var key in data){
-                                 if(key!= 0) {
-                                 for(rows=1;rows<=10;rows++){
-                                 cobbS[key].fetch( rows, { id: 0, name: 0+' bid#'+rows }, 
-                                 function (err, res) {
-                                    // console.log('booHoo - nothing happens :O');
-                                 });
-                                 }
-                                 }
-                             }
-                             
-                            initGame();
+                     
                         });//json init --- async !!!!
 
 
@@ -220,15 +150,6 @@
                         var socket = bio.connect();
 
                         socket.on('connect', function() {
-                            //console.log('CONNECTED TO REGULAR SOCKET');
-                            //socket.emit('hi');
-                            //socket.on('hi', function (data) {
-                            //   console.log('============ HI =============');
-                            ///});
-                            
-                            //socket.on('restart',function(data){
-                            //    console.log('restart req received');
-                            //;});
                             $('#connection').html('<font color=green>connected</font>');
                         });
                         
@@ -422,94 +343,6 @@
 
                                 }
                         }
-                        var steps=0;
-                        stepInterval = setInterval( function() {
-                            if(gameRuns){
-                            steps++;
-                            changeDir(stepDirection);
-                            //makeMove();
-                            } else {
-                                
-                            }
-                            //console.log("steps:",steps, "stepDirection",stepDirection);
-                            
-                        },400);
-                        
-                        window.ondeviceorientation = function(event) {
-                             alpha = Math.round(event.alpha);
-                             beta = Math.round(event.beta);
-                             gamma = Math.round(event.gamma);
-                             $("#debug").html(event.webkitCompassHeading);
-                             
-                             $('#motion').html(beta+":"+gamma);
-                             if(Math.abs(beta)>Math.abs(gamma)) {
-                                 if(beta<=-6) {
-                                     stepDirection ="right";
-                                 }else if(beta>=6) {
-                                     stepDirection ="left";
-                                 }
-                             }else {
-                                 if(gamma<=-6) {
-                                     stepDirection ="up";
-                                 }else if(gamma>=6) {
-                                     stepDirection ="down";
-                                 }
-                             }
-                             rotate4d(gamma,beta,alpha);
-                             setIndicator(stepDirection);
-                             
-                             /*
-                              * Ancient stuff 
-                                window.ondevicemotion = function(event) {
-                                  ax = event.accelerationIncludingGravity.x
-                                  ay = event.accelerationIncludingGravity.y
-                                  az = event.accelerationIncludingGravity.z
-                                  rotation = event.rotationRate;
-                                  if (rotation != null) {
-                                    arAlpha = Math.round(rotation.alpha);
-                                    arBeta = Math.round(rotation.beta);
-                                    arGamma = Math.round(rotation.gamma);
-                                  }
-                              * 
-                              * 
-                              * 
-                              * 
-                              */
-                             
-                        }
-                        /*
-                         * 
-                         var Cobb = bio.join(32);      
-                         Cobb.watch( function (data, action) {
-                         console.log('WATCHING: ', action, data);
-                         })
-                         Cobb.watch(7, function (data, action) {
-                         console.log('WATCHING: ', action, data);
-                         })
-                         Cobb.fetch(7, function (err, res) {
-                         console.log('FETCHING', arguments);
-                         console.log(res);
-                         });
-                         Cobb.open(6, { id: 12345, name: 'Jonathan' }, function (err, res) {
-                         console.log(arguments);
-                         });
-                         Cobb.on('connect', function () {
-                         console.log('CONNECTED', arguments);
-                         $('#connection').html('<font color=green>connected</font>');
-                         })
-                         
-                         Cobb.on('disconnect', function () {
-                         console.log('DISCONNECT', arguments);
-                         $('#connection').html('<font color=red>dis-connected</font>');
-                         })
-                         
-                         Cobb.on('reconnect', function () {
-                         console.log('RECONNECT', arguments);
-                         $('#connection').html('<font color=red>re-connected</font>');
-                         });
-                         
-                         * 
-                         */
 
                         Array.prototype.remove = function(from, to) {
                             var rest = this.slice((to || from) + 1 || this.length);
@@ -517,36 +350,10 @@
                             return this.push.apply(this, rest);
                         };
                         
-                        function rotate4d(x,y,z){
-                            return; //performance SUX
-                            var xDeg=x*5;
-                            var yDeg=y*5;
-                            var zDeg=1;
-                            
-                            //alert('rotate')
-                            $("#basePlate").css({ WebkitTransform: 'rotate3d(' + xDeg +','+yDeg+','+0+',' + '10deg)'});
-                            $("#basePlate").css({ '-webkit-transform': 'perspective(90)  rotate3d(' + xDeg +', '+yDeg+', '+0+', ' + '1deg)'});
-                            $("#basePlate").css({ '-moz-transform': 'rotate3d(' + xDeg +', '+yDeg+', '+0+', ' + '10deg)'});
-                            //$("#basePlate").css({ '-webkit-transform': 'rotate3d(' + 22 +', '+33+', '+0+', ' + '45deg )'});
-                            
-                            //$("#debug").html('WebkitTransform: rotate3d(' + xDeg +','+yDeg+','+zDeg+',' + '10deg)');
-                            //$("#basePlate").css({ WebkitTransform: 'rotateY(' + y + 'deg)'});
-                            //$("#basePlate").css({ '-moz-transform': 'rotateY(' + y + 'deg)'});
-                        }
-                        function rotate2d(degree) {
-                            $("#basePlate").css({ WebkitTransform: 'rotate(' + degree + 'deg)'});
-                            $("#basePlate").css({ '-moz-transform': 'rotate(' + degree + 'deg)'});
-                            //alert('rotate');
-                        }
-                        //$("#basePlate").css({ '-moz-transform': 'rotated3d(' + 22 +', '+33+', '+0+', ' + '45deg )'});
-                        $("#basePlate").css({ '-webkit-transform-style': 'preserve-3d;'});
-                        $("#basePlate").css({ '-webkit-transform': 'perspective(211)'});
-
+                      
         </script>
         <div id="debug"></div>
-        <a onclick="togglePause()">Toggle pause</a>
-        <a onclick="rotate4d(22,33,44)">Rotate test</a>
-        <a onclick="rotate4d(0,0,0)">Rotate back</a>
+
         
     </body>
 </html>
