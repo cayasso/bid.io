@@ -9,7 +9,7 @@
        
         
         <div id="basePlate">
-            <table id="actionList" border="1" cellpadding="2" cellspacing="0">
+            <table id="actionList" border="1"  cellspacing="3">
                 <tr>
                     <th colspan="1" id="up">Action</th>
                     <th colspan="1" id="up">County</th>
@@ -26,14 +26,16 @@
         <script src="/jquery-1.9.1.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="/bid.io.js"></script>
+        <script src="/jquery-ui-1.10.0.custom.js"></script>
 
         <script>
         var cobbS = new Array(); 
         counter=0;
         var newRow="";
+        counter = 0;
         $.getJSON("channels.json", function(counties) {
         channelList = counties;
-        
+        color="white";
         for (var key in counties) {
             if (key != 0) {
                 //console.log(data[key]);
@@ -42,19 +44,21 @@
                 cobbS[key].watch(function(data, action) {
                 console.log('WATCHING: ', action, data);
                   
-                    /*if (action == "fetch") {
-                     
+                    if (action == "fetch") {
+                     color="grey";
                      } else if(action == "error") {
-                       
+                       color="red";
                     } else if(action == "lock") {
-
+                        color="cyan";
                     } else if (action == "complete") {
-
-                    }*/
+                        color="green";
+                    }
+        counter++;
         if(action == "error") {
-            newRow="<tr>";
-            newRow+="<td>"+error+"&nbsp;</td>"; 
-            newRow+="<td colspan=\"7\">"+action+"&nbsp;</td>"; 
+            newRow="<tr id=\"tr"+counter+"\">"; 
+            newRow+="<td><font color='"+color+"'>"+action+"&nbsp;</color></td>"; 
+            newRow+="<td  colspan=\"7\">"+data.message+"&nbsp;</td>"; 
+            newRow+="</tr>";
         } else {
             try {   
                 owner_name=data.owner.name;
@@ -63,11 +67,11 @@
                 owner_name="-";
                 owner_id  ="-";
              }
-            newRow="<tr>"; 
-            newRow+="<td>"+action+"&nbsp;</td>"; 
+            newRow="<tr id=\"tr"+counter+"\">"; 
+            newRow+="<td><font color='"+color+"'>"+action+"&nbsp;</color></td>"; 
             newRow+="<td>"+counties[data.county]+"&nbsp;</td>"; 
-            newRow+="<td>"+key+"&nbsp;</td>"; 
-            newRow+="<td>"+data.id+"&nbsp;</td>"; 
+            newRow+="<td>"+data.county+"&nbsp;</td>"; 
+            //newRow+="<td>"+data.id+"&nbsp;</td>"; 
             newRow+="<td>"+data.description+"&nbsp;</td>";
             newRow+="<td>"+data.state+"&nbsp;</td>"; 
             newRow+="<td>"+owner_name+"&nbsp;</td>"; 
@@ -77,7 +81,7 @@
                     
                  
                  $('#actionList tr:first').after(newRow);
-                 
+                 $('#tr'+counter+'').effect("highlight", { color: color},2000);
                 });
 
                
