@@ -11,13 +11,16 @@
         <div id="basePlate">
             <table id="actionList" border="1" cellpadding="2" cellspacing="0">
                 <tr>
-                    <th rowspan="28"></th>
-                    <th colspan="1" id="up">^</th>
-                    <th colspan="1" id="down">v</th>
-                    <th colspan="1" id="right">&gt;</th>
-                    <th colspan="1" id="pause">II</th>
-                    <th rowspan="28"></th>
+                    <th colspan="1" id="up">Action</th>
+                    <th colspan="1" id="up">County</th>
+                    <th colspan="1" id="up">County id</th>
+                    <th colspan="1" id="up">Description</th>
+                    <th colspan="1" id="up">State</th>
+                    <th colspan="1" id="up">Owner Name</th>
+                    <th colspan="1" id="up">Owner id</th>
+                    
                 </tr>
+                <tr><td colspan="7"> - </td></tr>
             </table>  
         </div>
         <script src="/jquery-1.9.1.min.js"></script>
@@ -28,30 +31,53 @@
         var cobbS = new Array(); 
         counter=0;
         var newRow="";
-        $.getJSON("channels.json", function(data) {
-        channelList = data;
+        $.getJSON("channels.json", function(counties) {
+        channelList = counties;
         
-        for (var key in data) {
+        for (var key in counties) {
             if (key != 0) {
+                //console.log(data[key]);
+                
                 cobbS[key] = bio.join(key);
                 cobbS[key].watch(function(data, action) {
                 console.log('WATCHING: ', action, data);
-                    if (action == "fetch") {
-                        newRow="<tr>"; 
-                        newRow+="<td>"+""+"</td>"; 
-                        newRow+="<td>"+""+"</td>"; 
-                        newRow+="<td>"+""+"</td>"; 
-                        newRow+="<td>"+""+"</td>"; 
-                        newRow+="<td>"+""+"</td>"; 
-                        newRow+="<td>"+""+"</td>"; 
-            
-                        newRow+="</tr>"; 
-                        $('#actionList tr:last').after(newRow);
+                  
+                    /*if (action == "fetch") {
+                     
+                     } else if(action == "error") {
+                       
                     } else if(action == "lock") {
 
                     } else if (action == "complete") {
 
-                    }
+                    }*/
+        if(action == "error") {
+            newRow="<tr>";
+            newRow+="<td>"+error+"&nbsp;</td>"; 
+            newRow+="<td colspan=\"7\">"+action+"&nbsp;</td>"; 
+        } else {
+            try {   
+                owner_name=data.owner.name;
+                owner_id  =data.owner.id;
+             }catch(Ex){
+                owner_name="-";
+                owner_id  ="-";
+             }
+            newRow="<tr>"; 
+            newRow+="<td>"+action+"&nbsp;</td>"; 
+            newRow+="<td>"+counties[data.county]+"&nbsp;</td>"; 
+            newRow+="<td>"+key+"&nbsp;</td>"; 
+            newRow+="<td>"+data.id+"&nbsp;</td>"; 
+            newRow+="<td>"+data.description+"&nbsp;</td>";
+            newRow+="<td>"+data.state+"&nbsp;</td>"; 
+            newRow+="<td>"+owner_name+"&nbsp;</td>"; 
+            newRow+="<td>"+owner_id+"</td>"; 
+            newRow+="</tr>"; 
+        }
+                    
+                 
+                 $('#actionList tr:first').after(newRow);
+                 
                 });
 
                
@@ -72,6 +98,9 @@
             this.length = from < 0 ? this.length + from : from;
             return this.push.apply(this, rest);
         };
+        function keyPress(){
+            //not at this time :O
+        }
         </script>
         <div id="debug"></div>
     </body>
