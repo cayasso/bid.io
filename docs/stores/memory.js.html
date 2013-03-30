@@ -329,15 +329,15 @@ store.find('all', function(){
   if ('object' !== typeof query) {
     query = {id: query};
   }
-  var result = [], count = 0, dcount = 0, index, key, data = this.data;
+  var result = [], count = 0, dcount = 0, index, key, data = this.data, _data = [];
   this.async(function () {
     for (var k in query) { count += 1; }
-    for (var h in data) { dcount += 1; }
+    for (var h in data) { dcount += 1; _data.push(data[h]); }
     if (!dcount) {
       if (fn) fn(null, []);
       return;
     } else if (query.id &amp;&amp; query.id === 'all') {
-      result = data;
+      result = _data;
     } else {
       if (count) {
         for (key in data) {
