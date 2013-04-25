@@ -15,7 +15,7 @@
     "socket.io": "0.9.x",
     "send": "~0.1.0",
     "bid.io-parser": ">= 0.1.0",
-    "bid.io-client": "0.1.0"
+    "bid.io-client": ">= 0.1.0"
   },
   "devDependencies": {
     "express": "3.1.x",
