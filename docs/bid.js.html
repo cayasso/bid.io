@@ -249,7 +249,7 @@ var debug = require('debug')('bid.io:bid');</code></pre>
 Bid.prototype.get = function (id, fn) {
   this.store.get(id, function (err, bid) {
     if (this.handleError(err, bid, fn)) return;
-    if (fn) fn(null, bid);
+    if ('function' === typeof fn) fn(null, bid);
     this.emit('get', bid);
   }.bind(this));
   return this;
@@ -285,8 +285,9 @@ Bid.prototype.get = function (id, fn) {
           </table>
           <div class="description"><p>Find a <code>bid</code> from store.</p> 
             <pre><code class="language-javascript">Bid.prototype.find = function (query, fn) {
+  console.log('FETCHING');
   this.store.find(query, function (err, res) {
-    if (fn) fn(null, res);
+    if ('function' === typeof fn) fn(null, res);
   }.bind(this));
   return this;
 };</code></pre>
@@ -340,7 +341,7 @@ Bid.prototype.get = function (id, fn) {
     bid.owners[owner.id] = owner;
     return self.set(id, bid, function (err, bid) {
       if (self.handleSetError(err, bid, fn)) return;
-      if (fn) fn(null, bid);
+      if ('function' === typeof fn) fn(null, bid);
       self.emit('lock', bid);
     });
   });
@@ -430,7 +431,7 @@ Bid.prototype.get = function (id, fn) {
       bid.locked = 0;
       return self.set(id, bid, function (err, bid) {
         if (self.handleSetError(err, bid, fn)) return;
-        if (fn) fn(null, bid);
+        if ('function' === typeof fn) fn(null, bid);
         self.emit('unlock', bid);
       });
     }
@@ -517,12 +518,13 @@ Bid.prototype.get = function (id, fn) {
   var self = this;
   self.get(id, function (err, bid) {
     if (self.handleError(err, bid, owner.id, fn)) return;
+    bid.locked = 0;
     bid.state = 1;
-    bid.owner = owner;
+    bid.owner = null;
     bid.owners[owner.id] = owner;
     return self.set(id, bid, function (err, bid) {
       if (self.handleSetError(err, bid, fn)) return;
-      if (fn) fn(null, bid);
+      if ('function' === typeof fn) fn(null, bid);
       self.emit('pending', bid);
     });
   });
@@ -574,7 +576,7 @@ Bid.prototype.get = function (id, fn) {
     bid.owners[owner.id] = owner;
     return self.set(id, bid, function (err, bid) {
       if (self.handleSetError(err, bid, fn)) return;
-      if (fn) fn(null, bid);
+      if ('function' === typeof fn) fn(null, bid);
       self.emit('complete', bid);
     });
   });
