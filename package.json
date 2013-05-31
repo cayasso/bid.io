@@ -1,6 +1,6 @@
 {
   "name": "bid.io",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Handle real time bids.",
   "author": {
     "name": "Jonathan Brumley",
@@ -22,8 +22,5 @@
     "mocha": "*",
     "expect.js": "*",
     "doxx": "*"
-  },
-  "scripts": {
-    "test": "make test"
   }
 }
