@@ -162,7 +162,8 @@ function Channel (name, manager) {
     'unlock',
     'pending',
     'complete',
-    'error'
+    'error',
+    'update'
   ];
   this.events = [
     'message',
@@ -357,6 +358,20 @@ Channel.prototype.forceunlock = function (id, owner, fn) {
 };
 
 /**
+ * Update a `bid` data.
+ *
+ * @param {String|Number} id the bid id
+ * @param {Object} data data object
+ * @param {Function} fn callback
+ * @return {Channel} self
+ * @api public
+ */
+
+Channel.prototype.update = function (id, data, fn) {
+  return this.send('update', id, data, fn);
+};
+
+/**
  * Watch a `bid` or all `bids` in a `channel`.
  *
  * @param {String|Number} bidId the bid id or actions to watch
@@ -368,16 +383,11 @@ Channel.prototype.forceunlock = function (id, owner, fn) {
 
 Channel.prototype.watch = function (bidId, actions, fn) {
   if ('function' === typeof bidId) {
-    fn = bidId;
-    actions = '*';
-    bidId = null;
+    fn = bidId; actions = '*'; bidId = null;
   } else if (~this.actions.indexOf(bidId)) {
-    fn = actions;
-    actions = bidId;
-    bidId = null;
+    fn = actions; actions = bidId; bidId = null;
   } else if ('function' === typeof actions){
-    fn = actions;
-    actions = '*';
+    fn = actions; actions = '*';
   }
 
   var self = this;
@@ -388,27 +398,24 @@ Channel.prototype.watch = function (bidId, actions, fn) {
     actions = actions.toString();
     return ~actions.indexOf(action);
   };
-  self.watches[bidId] = function cb (packet) {
+
+  if (self.watches[bidId || this.name]) return this;
+
+  var cb = function (packet) {
     var result = decode(packet);
     var id = result.id;
     var type = result.type;
     var action = type;
     var isValid = valid(action);
-
-    if (bidId && id == bidId && isValid) {
-      return fn(result.data, action);
-    }
-    if (bidId && id == bidId && valid('*')) {
-      return fn(result.data, action);
-    }
-    if (bidId && id != bidId) {
-      return;
-    }
-    if (!bidId && isValid || valid('*')) {
-      return fn(result.data, action);
-    }
+    var isMine = bidId && id == bidId;
+    var notMine = bidId && id != bidId;
+    if (notMine) return;
+    if ((isMine && isValid) ||
+      (isMine && valid('*')) || (!bidId && isValid ||
+        valid('*'))) return fn(result.data, action);
   };
-  self.socket.on(this.ns, self.watches[bidId]);
+  self.watches[bidId || this.name] = cb;
+  self.socket.on(this.ns, cb);
   return this;
 };
 
@@ -421,7 +428,7 @@ Channel.prototype.watch = function (bidId, actions, fn) {
  */
 
 Channel.prototype.unwatch = function (id) {
-  var watch = this.watches[id];
+  var watch = this.watches[id || this.name];
   if (watch) {
     this.socket.removeListener(this.ns, watch);
     delete this.watches[id];
@@ -446,7 +453,15 @@ Channel.prototype.send = function (type, id, owner, fn) {
     fn = owner;
     owner = null;
   }
-  data = ('query' === type) ? { query: owner } : { owner: owner };
+
+  // handle query and update cases
+  data = ('query' === type) ?
+  { query: owner } :
+  (('update' === type) ?
+    { update: owner } :
+    { owner: owner });
+
+  // encode our data
   var packet = encode({ type: type, id: id, data: data });
   this.request(packet, fn);
   return this;
@@ -498,7 +513,6 @@ Channel.prototype.buildUrl = function (channel, urlStr) {
   var obj = url.parse(urlStr || this.url);
   return [obj.protocol, '://', obj.authority, obj.path, '/', channel, '?', obj.query].join('');
 };
-
 });require.register("events.js", function(module, exports, require, global){
 /**
  * Expose constructor.
@@ -868,7 +882,8 @@ var packets = exports.packets = {
   complete:     5,
   claim:        6,
   forceunlock:  7,
-  error:        8
+  error:        8,
+  update:       9
 };
 
 /**
@@ -924,6 +939,8 @@ exports.encode = function(obj){
 exports.decode = function (str) {
 
   var p = {}, i = 0;
+
+  if (null == str) return error;
 
   // look up type
   p.type = packetslist[Number(str.charAt(0))];

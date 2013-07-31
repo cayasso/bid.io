@@ -93,6 +93,8 @@
               </li>
               <li><a href="#complete"><i class="alert alert-info"></i>complete</a>
               </li>
+              <li><a href="#update"><i class="alert alert-info"></i>update</a>
+              </li>
             </ul>
           </div>
         </div>
@@ -574,6 +576,64 @@ Bid.prototype.get = function (id, fn) {
     bid.state = 2;
     bid.owner = owner;
     bid.owners[owner.id] = owner;
+    return self.set(id, bid, function (err, bid) {
+      if (self.handleSetError(err, bid, fn)) return;
+      if ('function' === typeof fn) fn(null, bid);
+      self.emit('complete', bid);
+    });
+  });
+  return this;
+};</code></pre>
+          </div>
+          <section id="update">
+            <h1>update</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.update()</span> -><span>Bid</span>
+            </p>
+          </section>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width:20%">Option name</th>
+                <th style="width:20%">Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>id</td>
+                <td>String,Number</td>
+                <td>the bid id</td>
+              </tr>
+              <tr>
+                <td>oid</td>
+                <td>String,Number</td>
+                <td>id</td>
+              </tr>
+              <tr>
+                <td>callback</td>
+                <td>Function</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="description"><p>Force update a <code>bid</code>.</p> 
+            <pre><code class="language-javascript">Bid.prototype.update = function (id, data, fn) {
+  var self = this;
+
+  console.log('UPDATING NOW ==================&gt;', arguments);
+
+  self.get(id, function (err, bid) {
+    if (err) {
+      if (fn) fn(err);
+      return;
+    }
+    for (var key in data) {
+      if ('undefined' !== typeof bid[key]) {
+        bid[key] = data[key];
+      }
+    }
     return self.set(id, bid, function (err, bid) {
       if (self.handleSetError(err, bid, fn)) return;
       if ('function' === typeof fn) fn(null, bid);
