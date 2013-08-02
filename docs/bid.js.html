@@ -79,6 +79,10 @@
               </li>
               <li><a href="#set"><i class="alert alert-info"></i>set</a>
               </li>
+              <li><a href="#get"><i class="alert alert-info"></i>get</a>
+              </li>
+              <li><a href="#fetch"><i class="alert alert-info"></i>fetch</a>
+              </li>
               <li><a href="#find"><i class="alert alert-info"></i>find</a>
               </li>
               <li><a href="#lock"><i class="alert alert-info"></i>lock</a>
@@ -218,11 +222,45 @@ var debug = require('debug')('bid.io:bid');</code></pre>
   return this;
 };</code></pre>
           </div>
-          <section>
-            <h1></h1>
+          <section id="get">
+            <h1>get</h1>
             <h5 class="subheader"></h5>
             <p>
-              <div class="label label-success radius ctx-type"></div> -><span>Bid</span>
+              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.get()</span> -><span>Bid</span>
+            </p>
+          </section>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width:20%">Option name</th>
+                <th style="width:20%">Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>bid</td>
+                <td>String,Number</td>
+                <td>id</td>
+              </tr>
+              <tr>
+                <td>callback</td>
+                <td>Function</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="description"><p>Get a <code>bid</code> from store.</p> 
+            <pre><code class="language-javascript">Bid.prototype.get = function (id, fn) {
+  this.store.get(id, fn);
+  return this;
+};</code></pre>
+          </div>
+          <section id="fetch">
+            <h1>fetch</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">method</div><span>Bid.prototype.fetch()</span> -><span>Bid</span>
             </p>
           </section>
           <table class="table table-bordered table-striped">
@@ -247,14 +285,12 @@ var debug = require('debug')('bid.io:bid');</code></pre>
             </tbody>
           </table>
           <div class="description"><p>Fetch a <code>bid</code> from store.</p> 
-            <pre><code class="language-javascript">Bid.prototype.fetch =
-Bid.prototype.get = function (id, fn) {
-  this.store.get(id, function (err, bid) {
+            <pre><code class="language-javascript">Bid.prototype.fetch = function () {
+  this.get(id, function (err, bid) {
     if (this.handleError(err, bid, fn)) return;
     if ('function' === typeof fn) fn(null, bid);
-    this.emit('get', bid);
+    this.emit('fetch', bid);
   }.bind(this));
-  return this;
 };</code></pre>
           </div>
           <section id="find">
@@ -622,22 +658,22 @@ Bid.prototype.get = function (id, fn) {
             <pre><code class="language-javascript">Bid.prototype.update = function (id, data, fn) {
   var self = this;
 
-  console.log('UPDATING NOW ==================&gt;', arguments);
-
   self.get(id, function (err, bid) {
+
     if (err) {
-      if (fn) fn(err);
+      if ('function' === typeof fn) fn(err);
       return;
     }
+
     for (var key in data) {
       if ('undefined' !== typeof bid[key]) {
         bid[key] = data[key];
       }
     }
     return self.set(id, bid, function (err, bid) {
-      if (self.handleSetError(err, bid, fn)) return;
+      //if (self.handleSetError(err, bid, fn)) return;
       if ('function' === typeof fn) fn(null, bid);
-      self.emit('complete', bid);
+      self.emit('update', bid);
     });
   });
   return this;
