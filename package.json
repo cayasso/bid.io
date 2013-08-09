@@ -1,6 +1,6 @@
 {
   "name": "bid.io",
-  "version": "0.1.10rc1",
+  "version": "0.1.10rc2",
   "description": "Handle real time bids.",
   "author": {
     "name": "Jonathan Brumley",
@@ -15,7 +15,8 @@
     "socket.io": "0.9.x",
     "send": "~0.1.0",
     "bid.io-parser": ">= 0.1.0",
-    "bid.io-client": ">= 0.1.0"
+    "bid.io-client": ">= 0.1.0",
+    "date-utils": ">= 1.2.13"
   },
   "devDependencies": {
     "express": "3.1.x",
