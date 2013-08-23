@@ -1,6 +1,6 @@
 {
   "name": "bid.io",
-  "version": "0.1.10rc2",
+  "version": "0.1.11",
   "description": "Handle real time bids.",
   "author": {
     "name": "Jonathan Brumley",
