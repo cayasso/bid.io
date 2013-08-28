@@ -285,7 +285,7 @@ var debug = require('debug')('bid.io:bid');</code></pre>
             </tbody>
           </table>
           <div class="description"><p>Fetch a <code>bid</code> from store.</p> 
-            <pre><code class="language-javascript">Bid.prototype.fetch = function () {
+            <pre><code class="language-javascript">Bid.prototype.fetch = function (id, fn) {
   this.get(id, function (err, bid) {
     if (this.handleError(err, bid, fn)) return;
     if ('function' === typeof fn) fn(null, bid);
@@ -324,6 +324,8 @@ var debug = require('debug')('bid.io:bid');</code></pre>
           <div class="description"><p>Find a <code>bid</code> from store.</p> 
             <pre><code class="language-javascript">Bid.prototype.find = function (query, fn) {
   console.log('FETCHING');
+  query = query || {};
+  //query.saleDate = query.saleDate || Date.today().toFormat('YYYYMMDD');
   this.store.find(query, function (err, res) {
     if ('function' === typeof fn) fn(null, res);
   }.bind(this));
@@ -656,13 +658,17 @@ var debug = require('debug')('bid.io:bid');</code></pre>
           </table>
           <div class="description"><p>Force update a <code>bid</code>.</p> 
             <pre><code class="language-javascript">Bid.prototype.update = function (id, data, fn) {
+
   var self = this;
 
   self.get(id, function (err, bid) {
 
     if (err) {
-      if ('function' === typeof fn) fn(err);
-      return;
+      return self.error(err, fn);
+    }
+
+    if (!bid) {
+      return self.error('Bid not found in cache', fn);
     }
 
     for (var key in data) {
