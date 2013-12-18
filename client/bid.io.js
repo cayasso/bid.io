@@ -197,12 +197,9 @@ function Channel (name, manager) {
     wildcard: true
   });
 
-  this.io = manager.io;
-  this.opts = manager.opts;
-  this.url = manager.url;
+  this.primus = manager.primus;
   this.ns = manager.ns || 'stream';
   this.name = name;
-  this.watches = {};
   this.evts = {};
   this.connect();
 }
@@ -222,16 +219,18 @@ Channel.prototype.__proto__ = Emitter.prototype;
 
 Channel.prototype.connect = function () {
   var channel = this;
-  var url = this.buildUrl(this.name);
+  //var url = this.buildUrl(this.name);
   var l = EVENTS.length;
 
-  this.socket = this.io.connect(url, this.opts);
+  //this.spark = this.io.connect(url, this.opts);
+
+  this.spark = this.primus.channel(this.name);
 
   for (var i = 0; i < l; i++) {
     this.bind(EVENTS[i]);
   }
 
-  this.socket.on(this.ns, function (packet) {
+  this.spark.on(this.ns, function (packet) {
     channel.onstream.call(channel, packet);
   });
 
@@ -265,12 +264,12 @@ Channel.prototype.onstream = function (packet) {
  */
 
 Channel.prototype.bind = function (ev) {
-  var self = this;
+  var channel = this;
   this.evts[ev] = function () {
     var args = slice.call(arguments);
-    self.emit.apply(self, [ev].concat(args));
+    channel.emit.apply(channel, [ev].concat(args));
   };
-  self.socket.on(ev, this.evts[ev]);
+  channel.spark.on(ev, this.evts[ev]);
   return this;
 };
 
@@ -283,7 +282,7 @@ Channel.prototype.bind = function (ev) {
  */
 
 Channel.prototype.unbind = function (ev) {
-  this.socket.removeListener(ev, this.evts[ev]);
+  this.spark.removeListener(ev, this.evts[ev]);
   return this;
 };
 
@@ -298,7 +297,7 @@ Channel.prototype.disconnect = function () {
   var l = EVENTS.length;
   for (var i = 0; i < l; i++) {
     this.unbind(EVENTS[i]);
-    this.socket.disconnect();
+    this.spark.disconnect();
   }
   return this;
 };
@@ -396,19 +395,6 @@ Channel.prototype._watch = function (id, action, type, fn) {
 };
 
 /**
- * Fetch a `bid` from server.
- *
- * @param {String|Number} id the bid id
- * @param {Function} fn callback
- * @return {Channel} self
- * @api public
- */
-
-Channel.prototype.fetch = function (id, fn) {
-  return this.send('fetch', id, fn);
-};
-
-/**
  * Fetch a `bid` or `bids` from server.
  *
  * @param {String|Number|Object} query
@@ -447,76 +433,6 @@ Channel.prototype.open = function (id, owner, fn) {
 
 Channel.prototype.cancel = function (id, owner, fn) {
   return this.send('unlock', id, owner, fn);
-};
-
-/**
- * Claim a `bid`.
- *
- * @param {String|Number} id the bid id
- * @param {Object} owner owner object with at least an id attribute
- * @param {Function} fn callback
- * @return {Channel} self
- * @api public
- */
-
-Channel.prototype.claim = function (id, owner, fn) {
-  return this.send('claim', id, owner, fn);
-};
-
-/**
- * Set `bid` to pending.
- *
- * @param {String|Number} id the bid id
- * @param {Object} owner owner object with at least an id attribute
- * @param {Function} fn callback
- * @return {Channel} self
- * @api public
- */
-
-Channel.prototype.pending = function (id, owner, fn) {
-  return this.send('pending', id, owner, fn);
-};
-
-/**
- * Complete (close) a `bid`.
- *
- * @param {String|Number} id the bid id
- * @param {Object} owner owner object with at least an id attribute
- * @param {Function} fn callback
- * @return {Channel} self
- * @api public
- */
-
-Channel.prototype.complete = function (id, owner, fn) {
-  return this.send('complete', id, owner, fn);
-};
-
-/**
- * Force unlock a `bid`.
- *
- * @param {String|Number} id the bid id
- * @param {Object} owner owner object with at least an id attribute
- * @param {Function} fn callback
- * @return {Channel} self
- * @api public
- */
-
-Channel.prototype.forceunlock = function (id, owner, fn) {
-  return this.send('forceunlock', id, owner, fn);
-};
-
-/**
- * Update a `bid` data.
- *
- * @param {String|Number} id the bid id
- * @param {Object} data data object
- * @param {Function} fn callback
- * @return {Channel} self
- * @api public
- */
-
-Channel.prototype.update = function (id, data, fn) {
-  return this.send('update', id, data, fn);
 };
 
 /**
@@ -559,7 +475,7 @@ Channel.prototype.send = function (type, id, owner, fn) {
  */
 
 Channel.prototype.request = function (packet, fn) {
-  this.socket.emit(this.ns, packet, this.response(fn));
+  this.spark.emit(this.ns, packet, this.response(fn));
   return this;
 };
 
@@ -582,19 +498,15 @@ Channel.prototype.response = function (fn) {
   };
 };
 
-/**
- * Build a `channel` url.
- *
- * @param {String} channel the channel name
- * @param {String} str the provided url string
- * @return {String} url the chanel url
- * @api private
- */
 
-Channel.prototype.buildUrl = function (channel, str) {
-  var obj = url.parse(str || this.url);
-  return [obj.protocol, '://', obj.authority, obj.path, '/', channel, '?', obj.query].join('');
-};
+['claim', 'fetch', 'complete', 'pending', 'update', 'forceunlock']
+.forEach(function (fn) {
+  Channel.prototype[fn] = function () {
+    var args = slice.call(arguments);
+    this.send.apply(this, [fn].concat(args));
+  };
+});
+
 });require.register("eventemitter2.js", function(module, exports, require, global){
 
 /**
@@ -1175,12 +1087,12 @@ module.exports = exports = Factory;
  * @api public
  */
 
-function Factory(io, uri, opts) {
+function Factory(primus, uri, opts) {
   opts = opts || {};
-  if (!io.protocol || !io.connect ) {
+  /*if (!io.protocol || !io.connect ) {
     throw Error('Please include socket.io client.');
-  }
-  return new Manager(io, uri, opts);
+  }*/
+  return new Manager(primus, uri, opts);
 }
 
 /**
@@ -1224,11 +1136,12 @@ module.exports = Manager;
  * @api public
  */
 
-function Manager (io, url, opts) {
-  opts = opts || {};
-  this.url = url;
-  this.io = io;
-  this.opts = opts;
+function Manager (primus /*, url, opts*/) {
+  //opts = opts || {};
+  this.primus = primus;
+  //this.url = url;
+  //this.io = primus;
+  //this.opts = opts;
   this.chnls = {};
 }
 
@@ -1241,14 +1154,14 @@ function Manager (io, url, opts) {
  * @api public
  */
 
-Manager.prototype.connect = function (url, opts) {
+/*Manager.prototype.connect = function (url, opts) {
   if ('string' !== typeof url) {
     opts = url;
     url = null;
   }
   url = url || this.url;
   return this.io.connect(url, opts);
-};
+};*/
 
 /**
  * Connect to a `channel`.
@@ -1262,17 +1175,23 @@ Manager.prototype.connect = function (url, opts) {
 Manager.prototype.join = function (name, opts) {
   opts = opts || {};
   debug('joining channel %s', name);
-  var fnc = opts[FORCE_NEW_CONNECTION];
+  /*var fnc = opts[FORCE_NEW_CONNECTION];
   var chnl = this.chnls[name];
   if (fnc) this.opts[FORCE_NEW_CONNECTION] = fnc;
   if (chnl && !fnc) return chnl;
   chnl = new Channel(name, this);
   this.chnls[name] = chnl;
-  return this.chnls[name];
+  return this.chnls[name];*/
+
+  var channel = this.chnls[name];
+  if (channel) return channel;
+  channel = new Channel(name, this);
+  this.chnls[name] = channel;
+  return channel;
 };
 
 /**
- * Disconnect to a `channel`.
+ * Disconnect from a `channel`.
  *
  * @param {String} name the channel name
  * @return {Manager} self
