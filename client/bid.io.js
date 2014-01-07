@@ -124,18 +124,18 @@ if (window.localStorage) debug.enable(localStorage.debug);function require(p, pa
  * Module dependencies.
  */
 
-var Emitter = require('./eventemitter2').EventEmitter2;
-var debug = require('debug')('bid.io-client:channel');
-var parser = require('./parser');
-var url = require('./url');
-var encode = parser.encode;
-var decode = parser.decode;
-var packets = parser.packets;
-var slice = [].slice;
-var actions;
-var isArray = Array.isArray ? Array.isArray : function _isArray(obj) {
-  return Object.prototype.toString.call(obj) === "[object Array]";
-};
+var Emitter = require('./eventemitter2').EventEmitter2
+  , debug = require('debug')('bid.io-client:channel')
+  , parser = require('./parser')
+  , url = require('./url')
+  , encode = parser.encode
+  , decode = parser.decode
+  , packets = parser.packets
+  , slice = [].slice
+  , actions
+  , isArray = Array.isArray ? Array.isArray : function _isArray(obj) {
+      return Object.prototype.toString.call(obj) === "[object Array]";
+    };
 
 /**
  * Constants declarations.
@@ -190,7 +190,7 @@ module.exports = Channel;
  * @api private
  */
 
-function Channel (name, manager) {
+function Channel(name, manager) {
 
   Emitter.call(this, {
     delimiter: DELIMITER,
@@ -198,6 +198,7 @@ function Channel (name, manager) {
   });
 
   this.io = manager.io;
+  this.conn = manager.conn;
   this.opts = manager.opts;
   this.url = manager.url;
   this.ns = manager.ns || 'stream';
@@ -216,11 +217,11 @@ Channel.prototype.__proto__ = Emitter.prototype;
 /**
  * Get a `socket` instance and connect to it.
  *
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.connect = function () {
+Channel.prototype.connect = function connect() {
   var channel = this;
   var url = this.buildUrl(this.name);
   var l = EVENTS.length;
@@ -231,8 +232,12 @@ Channel.prototype.connect = function () {
     this.bind(EVENTS[i]);
   }
 
-  this.socket.on(this.ns, function (packet) {
+  this.socket.on(this.ns, function onev(packet) {
     channel.onstream.call(channel, packet);
+  });
+
+  this.socket.on('reload', function onreload() {
+    channel.onreload.call(channel);
   });
 
   return this;
@@ -242,11 +247,11 @@ Channel.prototype.connect = function () {
  * Called up on incoming stream message.
  *
  * @param {Object} packet
- * @return {Channel} self
+ * @return {Channel} this
  * @api private
  */
 
-Channel.prototype.onstream = function (packet) {
+Channel.prototype.onstream = function onstream(packet) {
   var raw = decode(packet);
   var id = raw.id;
   var action = raw.type;
@@ -257,14 +262,31 @@ Channel.prototype.onstream = function (packet) {
 };
 
 /**
- * Bind socket events to channel.
+ * Called up on reload request.
  *
- * @param {String} ev event name
- * @return {Channel} self
+ * @return {Channel} this
  * @api private
  */
 
-Channel.prototype.bind = function (ev) {
+Channel.prototype.onreload = function onreload() {
+  var channel = this;
+  channel.conn.disconnect();
+  channel.disconnect();
+  setTimeout(function timeout(){
+    channel.conn.socket.reconnect();
+  }, 100);
+  return this;
+};
+
+/**
+ * Bind socket events to channel.
+ *
+ * @param {String} ev event name
+ * @return {Channel} this
+ * @api private
+ */
+
+Channel.prototype.bind = function bind(ev) {
   var self = this;
   this.evts[ev] = function () {
     var args = slice.call(arguments);
@@ -278,11 +300,11 @@ Channel.prototype.bind = function (ev) {
  * Bind socket events to channel.
  *
  * @param {String} ev event name
- * @return {Channel} self
+ * @return {Channel} this
  * @api private
  */
 
-Channel.prototype.unbind = function (ev) {
+Channel.prototype.unbind = function unbind(ev) {
   this.socket.removeListener(ev, this.evts[ev]);
   return this;
 };
@@ -290,11 +312,11 @@ Channel.prototype.unbind = function (ev) {
 /**
  * Disconnect from `channel`.
  *
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.disconnect = function () {
+Channel.prototype.disconnect = function disconnect() {
   var l = EVENTS.length;
   for (var i = 0; i < l; i++) {
     this.unbind(EVENTS[i]);
@@ -309,11 +331,11 @@ Channel.prototype.disconnect = function () {
  * @param {String|Number} id the bid id or actions to watch
  * @param {String} actions the the actions to watch
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.watch = function (id, action, fn) {
+Channel.prototype.watch = function watch(id, action, fn) {
   return this._watch(id, action, 'on', fn);
 };
 
@@ -323,11 +345,11 @@ Channel.prototype.watch = function (id, action, fn) {
  * @param {String|Number} id the bid id to unwatch
  * @param {String|Array} action the action(s) to unwatch
  * @param {Function} fn the callback function
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.unwatch = function (id, action, fn) {
+Channel.prototype.unwatch = function unwatch(id, action, fn) {
   return this._watch(id, action, 'off', fn);
 };
 
@@ -338,11 +360,11 @@ Channel.prototype.unwatch = function (id, action, fn) {
  * @param {String|Array} action the action(s) to watch or unwatch
  * @param {String} type the method type to execute, could be `off` or `on`
  * @param {Function} fn the callback function
- * @return {Channel} self
+ * @return {Channel} this
  * @api private
  */
 
-Channel.prototype._watch = function (id, action, type, fn) {
+Channel.prototype._watch = function _watch(id, action, type, fn) {
 
   var event;
   var actions;
@@ -400,11 +422,11 @@ Channel.prototype._watch = function (id, action, type, fn) {
  *
  * @param {String|Number} id the bid id
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.fetch = function (id, fn) {
+Channel.prototype.fetch = function fetch(id, fn) {
   return this.send('fetch', id, fn);
 };
 
@@ -413,11 +435,11 @@ Channel.prototype.fetch = function (id, fn) {
  *
  * @param {String|Number|Object} query
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.find = function (query, fn) {
+Channel.prototype.find = function find(query, fn) {
   return this.send('query', '', query, fn);
 };
 
@@ -427,11 +449,11 @@ Channel.prototype.find = function (query, fn) {
  * @param {String|Number} id the bid id
  * @param {Object} owner owner object with at least an id attribute
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.open = function (id, owner, fn) {
+Channel.prototype.open = function open(id, owner, fn) {
   return this.send('lock', id, owner, fn);
 };
 
@@ -441,11 +463,11 @@ Channel.prototype.open = function (id, owner, fn) {
  * @param {String|Number} id the bid id
  * @param {Object} owner owner object with at least an id attribute
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.cancel = function (id, owner, fn) {
+Channel.prototype.cancel = function cancel(id, owner, fn) {
   return this.send('unlock', id, owner, fn);
 };
 
@@ -455,11 +477,11 @@ Channel.prototype.cancel = function (id, owner, fn) {
  * @param {String|Number} id the bid id
  * @param {Object} owner owner object with at least an id attribute
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.claim = function (id, owner, fn) {
+Channel.prototype.claim = function claim(id, owner, fn) {
   return this.send('claim', id, owner, fn);
 };
 
@@ -469,11 +491,11 @@ Channel.prototype.claim = function (id, owner, fn) {
  * @param {String|Number} id the bid id
  * @param {Object} owner owner object with at least an id attribute
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.pending = function (id, owner, fn) {
+Channel.prototype.pending = function pending(id, owner, fn) {
   return this.send('pending', id, owner, fn);
 };
 
@@ -483,11 +505,11 @@ Channel.prototype.pending = function (id, owner, fn) {
  * @param {String|Number} id the bid id
  * @param {Object} owner owner object with at least an id attribute
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.complete = function (id, owner, fn) {
+Channel.prototype.complete = function comple(id, owner, fn) {
   return this.send('complete', id, owner, fn);
 };
 
@@ -497,11 +519,11 @@ Channel.prototype.complete = function (id, owner, fn) {
  * @param {String|Number} id the bid id
  * @param {Object} owner owner object with at least an id attribute
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.forceunlock = function (id, owner, fn) {
+Channel.prototype.forceunlock = function forceunlock(id, owner, fn) {
   return this.send('forceunlock', id, owner, fn);
 };
 
@@ -511,11 +533,11 @@ Channel.prototype.forceunlock = function (id, owner, fn) {
  * @param {String|Number} id the bid id
  * @param {Object} data data object
  * @param {Function} fn callback
- * @return {Channel} self
+ * @return {Channel} this
  * @api public
  */
 
-Channel.prototype.update = function (id, data, fn) {
+Channel.prototype.update = function update(id, data, fn) {
   return this.send('update', id, data, fn);
 };
 
@@ -525,11 +547,11 @@ Channel.prototype.update = function (id, data, fn) {
  * @param {Number} type request type
  * @param {String|Number} id the bid id
  * @param {Object} owner owner object
- * @return {Channel} self
+ * @return {Channel} this
  * @api private
  */
 
-Channel.prototype.send = function (type, id, owner, fn) {
+Channel.prototype.send = function send(type, id, owner, fn) {
   var data;
   if ('function' === typeof owner) {
     fn = owner;
@@ -554,11 +576,11 @@ Channel.prototype.send = function (type, id, owner, fn) {
  *
  * @param {Object} packet
  * @param {Function} fn callback function
- * @return {Channel} self
+ * @return {Channel} this
  * @api private
  */
 
-Channel.prototype.request = function (packet, fn) {
+Channel.prototype.request = function request(packet, fn) {
   this.socket.emit(this.ns, packet, this.response(fn));
   return this;
 };
@@ -571,7 +593,7 @@ Channel.prototype.request = function (packet, fn) {
  * @api private
  */
 
-Channel.prototype.response = function (fn) {
+Channel.prototype.response = function response(fn) {
   return function (packet) {
     var result = decode(packet);
     if ('error' == result.type) {
@@ -591,7 +613,7 @@ Channel.prototype.response = function (fn) {
  * @api private
  */
 
-Channel.prototype.buildUrl = function (channel, str) {
+Channel.prototype.buildUrl = function buildUrl(channel, str) {
   var obj = url.parse(str || this.url);
   return [obj.protocol, '://', obj.authority, obj.path, '/', channel, '?', obj.query].join('');
 };
@@ -1205,9 +1227,9 @@ exports.Channel = Channel;
  * Module dependencies.
  */
 
-var Channel = require('./channel');
-var debug = require('debug')('bid.io-client:manager');
-var FORCE_NEW_CONNECTION = 'force new connection';
+var Channel = require('./channel')
+  , debug = require('debug')('bid.io-client:manager')
+  , FORCE_NEW_CONNECTION = 'force new connection';
 
 /**
  * Module exports.
@@ -1224,12 +1246,13 @@ module.exports = Manager;
  * @api public
  */
 
-function Manager (io, url, opts) {
+function Manager(io, url, opts) {
   opts = opts || {};
   this.url = url;
   this.io = io;
   this.opts = opts;
   this.chnls = {};
+  this.conn = null;
 }
 
 /**
@@ -1241,13 +1264,14 @@ function Manager (io, url, opts) {
  * @api public
  */
 
-Manager.prototype.connect = function (url, opts) {
+Manager.prototype.connect = function connect(url, opts) {
   if ('string' !== typeof url) {
     opts = url;
     url = null;
   }
   url = url || this.url;
-  return this.io.connect(url, opts);
+  this.conn = this.io.connect(url, opts);
+  return this.conn;
 };
 
 /**
@@ -1259,7 +1283,7 @@ Manager.prototype.connect = function (url, opts) {
  * @api public
  */
 
-Manager.prototype.join = function (name, opts) {
+Manager.prototype.join = function join(name, opts) {
   opts = opts || {};
   debug('joining channel %s', name);
   var fnc = opts[FORCE_NEW_CONNECTION];
@@ -1279,7 +1303,7 @@ Manager.prototype.join = function (name, opts) {
  * @api public
  */
 
-Manager.prototype.leave = function (name) {
+Manager.prototype.leave = function leave(name) {
   var chnl = this.chnls[name];
   if (chnl) {
     debug('disconnecting from channel %s', name);
@@ -1299,7 +1323,7 @@ Manager.prototype.leave = function (name) {
  * @api public
  */
 
-Manager.prototype.getChannel = function (name) {
+Manager.prototype.getChannel = function getChannel(name) {
   var chnl = this.chnls[name];
   if (!chnl) return debug("Channel '%s' doesn't exist.", name);
   return chnl;
@@ -1465,7 +1489,7 @@ var parts = ['source', 'protocol', 'authority', 'userInfo', 'user', 'password',
              'host', 'port', 'relative', 'path', 'directory', 'file', 'query',
              'anchor'];
 
-function parse (str) {
+function parse(str) {
   var m = re.exec(str || '') , uri = {} , i = 14;
   while (i--) {
     uri[parts[i]] = m[i] || '';
