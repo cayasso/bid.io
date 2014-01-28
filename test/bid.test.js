@@ -32,6 +32,55 @@ describe('Bid', function() {
     expect(stores).to.have.key('nedb');
   });
 
+  it('should fetch a bid', function(done) {
+    var id = obj.id;
+    bid.set(id, { id: id, saleDate: today }, function (err, doc) {
+      if (err) return done(err);
+      bid.fetch(id, function (err, doc) {
+        if (err) return done(err);
+        expect(doc.id).to.be.eql(id);
+        done();
+      });
+    });
+  });
+
+  it('should not fetch a bid from a different sale date', function(done) {
+    var id = obj.id;
+    bid.set(id, { id: id, saleDate: '01/01/01' }, function (err, doc) {
+      if (err) return done(err);
+      bid.fetch(id, function (err, doc) {
+        if (err) {
+          expect(err.message).to.be('Bid not found');
+          return done();
+        }
+        done('Not');
+      });
+    });
+  });
+   
+  it('should clear all bids', function(done) {
+    var id = obj.id;
+    bid.set(id, { id: id, saleDate: today }, function (err, doc) {
+      if (err) return done(err);
+      var id = obj.id;
+      bid.set(id, { id: id, saleDate: today }, function (err, doc) {
+        if (err) return done(err);
+        var id = obj.id;
+        bid.set(id, { id: id, saleDate: today }, function (err, doc) {
+          if (err) return done(err);
+          bid.clear(function (err, docs) {
+            if (err) return done(err);
+            bid.find('all', function (err, docs) {
+              if (err) return done(err);
+              expect(docs.length).to.be.eql(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
   describe('#set', function () {
 
     it('should set a bid', function(done) {
@@ -478,43 +527,7 @@ describe('Bid', function() {
 
 
   });
-
-  /*  
-  it('should fetch a bid', function(done) {
-    var id = obj.id;
-    bid.set(id, { id: id, saleDate: today }, function (err, doc) {
-      if (err) return done(err);
-      bid.fetch(id, function (err, doc) {
-        if (err) return done(err);
-        expect(doc.id).to.be.eql(id);
-        done();
-      });
-    });
-  });
-   
-  it('should clear all bids', function(done) {
-    var id = obj.id;
-    bid.set(id, { id: id, saleDate: today }, function (err, doc) {
-      if (err) return done(err);
-      var id = obj.id;
-      bid.set(id, { id: id, saleDate: today }, function (err, doc) {
-        if (err) return done(err);
-        var id = obj.id;
-        bid.set(id, { id: id, saleDate: today }, function (err, doc) {
-          if (err) return done(err);
-          bid.clear(function (err, docs) {
-            if (err) return done(err);
-            bid.find('all', function (err, docs) {
-              if (err) return done(err);
-              expect(docs.length).to.be.eql(0);
-              done();
-            });
-          });
-        });
-      });
-    });
-  });
-  
+      
   /*it('should save a bid', function(done) {
 
     var id = obj.id;
